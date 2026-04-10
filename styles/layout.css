@@ -1,0 +1,223 @@
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-height: 100vh;
+  padding: var(--space-6) var(--space-4);
+  background: linear-gradient(180deg, var(--color-nav-900), var(--color-nav-950));
+  color: #ffffff;
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--color-primary-gradient);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 10px 24px rgba(222, 90, 37, 0.3);
+}
+
+.brand-copy {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.brand-copy__eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.brand-copy strong {
+  font-size: 19px;
+  line-height: 1.15;
+}
+
+.brand-copy span:last-child {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.sidebar__nav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-height: 0;
+}
+
+.sidebar__footer {
+  margin-top: auto;
+}
+
+.app-main {
+  width: min(100%, var(--content-max));
+  min-width: 0;
+  padding: var(--space-5);
+}
+
+.topbar__lead {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding: var(--space-5);
+  border: 1px solid rgba(229, 231, 235, 0.7);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow-sm);
+}
+
+body[data-theme="dark"] .topbar {
+  background: rgba(23, 29, 51, 0.84);
+}
+
+.topbar__copy {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.topbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.topbar__menu-toggle,
+.sidebar-backdrop {
+  display: none;
+}
+
+.page-footer {
+  padding: var(--space-8) 0 var(--space-4);
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+@media (max-width: 1180px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .app-main {
+    width: 100%;
+  }
+
+  body:not([data-page-type="dashboard"]) .sidebar {
+    position: relative;
+    min-height: auto;
+    padding-bottom: var(--space-5);
+  }
+
+  body[data-page-type="dashboard"] .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 30;
+    width: min(320px, 88vw);
+    min-height: 100vh;
+    transform: translateX(-104%);
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+    box-shadow: none;
+  }
+
+  body[data-page-type="dashboard"] .sidebar.sidebar--open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  body[data-page-type="dashboard"] .sidebar__nav {
+    overflow-y: auto;
+  }
+
+  body[data-page-type="dashboard"] .topbar__menu-toggle {
+    display: inline-grid;
+  }
+
+  body[data-page-type="dashboard"] .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    border: 0;
+    background: rgba(10, 15, 29, 0.44);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-base);
+  }
+
+  body[data-page-type="dashboard"].sidebar-open {
+    overflow: hidden;
+  }
+
+  body[data-page-type="dashboard"].sidebar-open .sidebar-backdrop {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (max-width: 860px) {
+  .app-main {
+    padding: var(--space-4);
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--space-4);
+  }
+
+  .topbar__lead {
+    width: 100%;
+  }
+
+  .topbar__actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 560px) {
+  .sidebar {
+    padding: var(--space-5) var(--space-3);
+  }
+
+  .app-main {
+    padding: var(--space-3);
+  }
+
+  .topbar__lead {
+    align-items: center;
+  }
+}

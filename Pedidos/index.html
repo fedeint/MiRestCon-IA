@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MiRest con IA | Pedidos</title>
+    <script>
+      document.documentElement.classList.add("js");
+      document.documentElement.dataset.theme = localStorage.getItem("mirest-ui-theme") || "light";
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles/tokens.css" />
+    <link rel="stylesheet" href="../styles/base.css" />
+    <link rel="stylesheet" href="../styles/layout.css" />
+    <link rel="stylesheet" href="../styles/components.css" />
+    <link rel="stylesheet" href="../styles/module-placeholder.css" />
+  </head>
+  <body data-root-path="../" data-page-type="module" data-module-key="pedidos" data-theme="light">
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Panel lateral">
+        <div class="sidebar__brand">
+          <div class="brand-mark" aria-hidden="true">IA</div>
+          <div class="brand-copy">
+            <span class="brand-copy__eyebrow">MiRest</span>
+            <strong>MiRest con IA</strong>
+            <span>Dashboard administrativo base</span>
+          </div>
+        </div>
+
+        <nav id="sidebarNav" class="sidebar__nav" aria-label="Navegación principal"></nav>
+
+        <div class="sidebar__footer card card--sidebar">
+          <span class="sidebar__footer-label">Módulo base</span>
+          <strong>Placeholder colaborativo</strong>
+          <p>Esta sección ya está lista para que el equipo dueño del módulo haga su implementación.</p>
+        </div>
+      </aside>
+
+      <div class="app-main">
+        <header class="topbar">
+          <div class="topbar__copy">
+            <span class="eyebrow" id="pageEyebrow">Módulo</span>
+            <h1 id="pageTitle">Pedidos</h1>
+            <p id="pageSubtitle">Inicializando módulo...</p>
+          </div>
+
+          <div class="topbar__actions">
+            <span class="chip chip--soft" id="pageContextChip">PD</span>
+            <a class="btn btn--secondary" id="secondaryBackLink" href="../index.html">Volver al dashboard</a>
+            <button class="btn btn--secondary" id="themeToggle" type="button">Modo oscuro</button>
+            <div class="avatar" id="pageAvatar" aria-label="Iniciales del módulo">PD</div>
+          </div>
+        </header>
+
+        <main class="module-page">
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a id="breadcrumbHome" href="../index.html">Dashboard</a>
+            <span>/</span>
+            <span id="moduleBreadcrumbCurrent">Pedidos</span>
+          </nav>
+
+          <div class="module-stack">
+            <section class="placeholder-panel card">
+              <div class="placeholder-panel__header">
+                <div>
+                  <span class="chip chip--accent">Módulo en construcción</span>
+                  <h2 id="moduleTitle">Pedidos</h2>
+                  <p id="moduleDescription">Pedidos de salón, delivery y coordinación operativa central.</p>
+                </div>
+
+                <a class="btn btn--primary" id="primaryBackLink" href="../index.html">Volver al dashboard</a>
+              </div>
+
+              <div class="placeholder-callout">
+                <p class="placeholder-callout__title">Frontend a cargo del responsable del módulo</p>
+                <p id="moduleOwnerHint">
+                  Este entry point queda reservado para el frontend definitivo del equipo de Pedidos.
+                </p>
+              </div>
+
+              <div class="module-meta-grid">
+                <article class="meta-card">
+                  <span>Ruta del módulo</span>
+                  <strong id="modulePathLabel">Pedidos/</strong>
+                  <p>La carpeta queda lista para crecer sin mezclar el shell global.</p>
+                </article>
+
+                <article class="meta-card">
+                  <span>Entry point</span>
+                  <strong id="moduleEntryLabel">Pedidos/index.html</strong>
+                  <p>Este archivo funciona como acceso inicial y base para el futuro PR.</p>
+                </article>
+
+                <article class="meta-card">
+                  <span>Estado actual</span>
+                  <strong id="moduleStatusLabel">Módulo en construcción</strong>
+                  <p>Sin lógica interna todavía, solo estructura navegable y consistente.</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="placeholder-panel card">
+              <div class="panel-heading">
+                <h3>Entregables esperados del responsable</h3>
+                <span class="chip chip--soft">Siguiente PR</span>
+              </div>
+
+              <ul class="check-list" id="moduleChecklist"></ul>
+            </section>
+          </div>
+
+          <footer class="page-footer">
+            MiRest con IA · <span id="currentYear">2026</span> · Placeholder del módulo.
+          </footer>
+        </main>
+      </div>
+    </div>
+
+    <script type="module" src="../scripts/app.js"></script>
+  </body>
+</html>
