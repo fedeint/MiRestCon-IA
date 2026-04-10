@@ -74,17 +74,17 @@ export const MODULES = [
     ],
   },
   {
-    key: "facturacion",
-    label: "Facturacion",
-    short: "FC",
-    path: "Facturacion/index.html",
-    description: "Comprobantes, emisión, control tributario y estados de venta.",
+    key: "reportes",
+    label: "Reportes",
+    short: "RP",
+    path: "Reportes/index.html",
+    description: "Reportes, indicadores y visualización operativa del negocio.",
     owner:
-      "Este entry point queda reservado para el frontend definitivo del equipo de Facturacion.",
+      "Este entry point queda reservado para el frontend definitivo del equipo de Reportes.",
     handoff: [
-      "Preparar una jerarquía visual fuerte para documentos y estados.",
-      "Utilizar el set global de cards y botones como base del módulo.",
-      "Documentar futuras rutas secundarias dentro de la carpeta del módulo.",
+      "Preparar una jerarquía visual clara para métricas y reportes.",
+      "Utilizar el set global de cards y componentes compartidos.",
+      "Documentar futuras vistas secundarias dentro de la carpeta del módulo.",
     ],
   },
   {

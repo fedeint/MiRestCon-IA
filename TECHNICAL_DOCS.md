@@ -57,7 +57,7 @@ La rama [main](https://github.com/shonperez/MiRestConIAEsqueleto/tree/main) ya e
 - `feature/clientes-ui`
 - `feature/cocina-ui`
 - `feature/delivery-afiliados-ui`
-- `feature/facturacion-ui`
+- `feature/reportes-ui`
 - `feature/menu-actual-ui`
 - `feature/pedidos-ui`
 - `feature/recetas-ui`

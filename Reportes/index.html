@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MiRest con IA | Facturacion</title>
+    <title>MiRest con IA | Reportes</title>
     <script>
       document.documentElement.classList.add("js");
       document.documentElement.dataset.theme = localStorage.getItem("mirest-ui-theme") || "light";
@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="../styles/components.css" />
     <link rel="stylesheet" href="../styles/module-placeholder.css" />
   </head>
-  <body data-root-path="../" data-page-type="module" data-module-key="facturacion" data-theme="light">
+  <body data-root-path="../" data-page-type="module" data-module-key="reportes" data-theme="light">
     <div class="app-shell">
       <aside class="sidebar" aria-label="Panel lateral">
         <div class="sidebar__brand">
@@ -45,15 +45,15 @@
         <header class="topbar">
           <div class="topbar__copy">
             <span class="eyebrow" id="pageEyebrow">Módulo</span>
-            <h1 id="pageTitle">Facturacion</h1>
+            <h1 id="pageTitle">Reportes</h1>
             <p id="pageSubtitle">Inicializando módulo...</p>
           </div>
 
           <div class="topbar__actions">
-            <span class="chip chip--soft" id="pageContextChip">FC</span>
+            <span class="chip chip--soft" id="pageContextChip">RP</span>
             <a class="btn btn--secondary" id="secondaryBackLink" href="../index.html">Volver al dashboard</a>
             <button class="btn btn--secondary" id="themeToggle" type="button">Modo oscuro</button>
-            <div class="avatar" id="pageAvatar" aria-label="Iniciales del módulo">FC</div>
+            <div class="avatar" id="pageAvatar" aria-label="Iniciales del módulo">RP</div>
           </div>
         </header>
 
@@ -61,7 +61,7 @@
           <nav class="breadcrumb" aria-label="Breadcrumb">
             <a id="breadcrumbHome" href="../index.html">Dashboard</a>
             <span>/</span>
-            <span id="moduleBreadcrumbCurrent">Facturacion</span>
+            <span id="moduleBreadcrumbCurrent">Reportes</span>
           </nav>
 
           <div class="module-stack">
@@ -69,8 +69,8 @@
               <div class="placeholder-panel__header">
                 <div>
                   <span class="chip chip--accent">Módulo en construcción</span>
-                  <h2 id="moduleTitle">Facturacion</h2>
-                  <p id="moduleDescription">Comprobantes, emisión, control tributario y estados de venta.</p>
+                  <h2 id="moduleTitle">Reportes</h2>
+                  <p id="moduleDescription">Reportes, indicadores y visualización operativa del negocio.</p>
                 </div>
 
                 <a class="btn btn--primary" id="primaryBackLink" href="../index.html">Volver al dashboard</a>
@@ -79,20 +79,20 @@
               <div class="placeholder-callout">
                 <p class="placeholder-callout__title">Frontend a cargo del responsable del módulo</p>
                 <p id="moduleOwnerHint">
-                  Este entry point queda reservado para el frontend definitivo del equipo de Facturacion.
+                  Este entry point queda reservado para el frontend definitivo del equipo de Reportes.
                 </p>
               </div>
 
               <div class="module-meta-grid">
                 <article class="meta-card">
                   <span>Ruta del módulo</span>
-                  <strong id="modulePathLabel">Facturacion/</strong>
+                  <strong id="modulePathLabel">Reportes/</strong>
                   <p>La carpeta queda lista para crecer sin mezclar el shell global.</p>
                 </article>
 
                 <article class="meta-card">
                   <span>Entry point</span>
-                  <strong id="moduleEntryLabel">Facturacion/index.html</strong>
+                  <strong id="moduleEntryLabel">Reportes/index.html</strong>
                   <p>Este archivo funciona como acceso inicial y base para el futuro PR.</p>
                 </article>
 

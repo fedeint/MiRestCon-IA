@@ -6,7 +6,7 @@ Base frontend del sistema administrativo MiRest con IA construida con HTML, CSS 
 
 - Dashboard principal responsive en [index.html](index.html)
 - Navegación global entre módulos
-- Placeholders independientes por módulo en [Almacen/index.html](Almacen/index.html), [Caja/index.html](Caja/index.html), [Clientes/index.html](Clientes/index.html), [Cocina/index.html](Cocina/index.html), [DeliveryAfiliados/index.html](DeliveryAfiliados/index.html), [Facturacion/index.html](Facturacion/index.html), [MenuActual/index.html](MenuActual/index.html), [Pedidos/index.html](Pedidos/index.html) y [Recetas/index.html](Recetas/index.html)
+- Placeholders independientes por módulo en [Almacen/index.html](Almacen/index.html), [Caja/index.html](Caja/index.html), [Clientes/index.html](Clientes/index.html), [Cocina/index.html](Cocina/index.html), [DeliveryAfiliados/index.html](DeliveryAfiliados/index.html), [Reportes/index.html](Reportes/index.html), [MenuActual/index.html](MenuActual/index.html), [Pedidos/index.html](Pedidos/index.html) y [Recetas/index.html](Recetas/index.html)
 - Design System base en [styles/tokens.css](styles/tokens.css)
 - Scripts globales en [scripts/app.js](scripts/app.js), [scripts/navigation.js](scripts/navigation.js) y [scripts/dashboard.js](scripts/dashboard.js)
 
@@ -24,7 +24,7 @@ Base frontend del sistema administrativo MiRest con IA construida con HTML, CSS 
 ├── Clientes/
 ├── Cocina/
 ├── DeliveryAfiliados/
-├── Facturacion/
+├── Reportes/
 ├── MenuActual/
 ├── Pedidos/
 └── Recetas/
@@ -54,7 +54,7 @@ Cada responsable debe trabajar en su carpeta correspondiente:
 - Clientes → [Clientes/](Clientes)
 - Cocina → [Cocina/](Cocina)
 - DeliveryAfiliados → [DeliveryAfiliados/](DeliveryAfiliados)
-- Facturación → [Facturacion/](Facturacion)
+- Reportes → [Reportes/](Reportes)
 - Menú actual → [MenuActual/](MenuActual)
 - Pedidos → [Pedidos/](Pedidos)
 - Recetas → [Recetas/](Recetas)
@@ -73,7 +73,7 @@ Cada responsable debe trabajar en su carpeta correspondiente:
 - `feature/clientes-ui`
 - `feature/cocina-ui`
 - `feature/delivery-afiliados-ui`
-- `feature/facturacion-ui`
+- `feature/reportes-ui`
 - `feature/menu-actual-ui`
 - `feature/pedidos-ui`
 - `feature/recetas-ui`
@@ -111,7 +111,7 @@ Recomendación operativa:
 - Clientes → `feature/clientes-ui`
 - Cocina → `feature/cocina-ui`
 - DeliveryAfiliados → `feature/delivery-afiliados-ui`
-- Facturacion → `feature/facturacion-ui`
+- Reportes → `feature/reportes-ui`
 - MenuActual → `feature/menu-actual-ui`
 - Pedidos → `feature/pedidos-ui`
 - Recetas → `feature/recetas-ui`
