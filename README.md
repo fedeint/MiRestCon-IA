@@ -78,6 +78,44 @@ Cada responsable debe trabajar en su carpeta correspondiente:
 - `feature/pedidos-ui`
 - `feature/recetas-ui`
 
+## Protección recomendada para `main`
+
+La protección de rama no se configuró automáticamente desde este flujo porque la integración disponible no expone esa operación.
+
+Configuración recomendada en GitHub:
+
+1. Ir a `Settings` del repositorio.
+2. Abrir `Branches`.
+3. Crear una regla para `main`.
+4. Activar:
+   - `Require a pull request before merging`
+   - `Require approvals`
+   - `Require conversation resolution before merging`
+   - `Restrict pushes that create files` o al menos restringir pushes directos si lo deseas
+
+Objetivo: que ningún compañero empuje directo a [main](https://github.com/shonperez/MiRestConIAEsqueleto/tree/main).
+
+## Invitación de colaboradores
+
+Cuando tengas los correos o usernames de GitHub:
+
+1. Ir a `Settings` → `Collaborators and teams`.
+2. Presionar `Add people`.
+3. Invitar por correo o username de GitHub.
+4. Asignarles trabajo sobre su rama o módulo correspondiente.
+
+Recomendación operativa:
+
+- Almacen → `feature/almacen-ui`
+- Caja → `feature/caja-ui`
+- Clientes → `feature/clientes-ui`
+- Cocina → `feature/cocina-ui`
+- DeliveryAfiliados → `feature/delivery-afiliados-ui`
+- Facturacion → `feature/facturacion-ui`
+- MenuActual → `feature/menu-actual-ui`
+- Pedidos → `feature/pedidos-ui`
+- Recetas → `feature/recetas-ui`
+
 ## Documentación adicional
 
 - Guía técnica interna en [TECHNICAL_DOCS.md](TECHNICAL_DOCS.md)

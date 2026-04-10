@@ -44,6 +44,41 @@ Usar una extensión tipo Live Server para trabajar con recarga automática duran
 
 Este skeleton puede publicarse como sitio estático en cualquier hosting de archivos estáticos.
 
+## Gobierno del repositorio
+
+### Rama principal
+
+La rama [main](https://github.com/shonperez/MiRestConIAEsqueleto/tree/main) ya está publicada como base estable.
+
+### Ramas creadas para trabajo por módulo
+
+- `feature/almacen-ui`
+- `feature/caja-ui`
+- `feature/clientes-ui`
+- `feature/cocina-ui`
+- `feature/delivery-afiliados-ui`
+- `feature/facturacion-ui`
+- `feature/menu-actual-ui`
+- `feature/pedidos-ui`
+- `feature/recetas-ui`
+
+### Protección de rama
+
+La protección automática de [main](https://github.com/shonperez/MiRestConIAEsqueleto/tree/main) no quedó aplicada desde este entorno porque la operación no está expuesta por las herramientas disponibles.
+
+Debe configurarse directamente en GitHub desde `Settings` → `Branches` con una regla sobre `main`.
+
+Configuración mínima recomendada:
+
+- Require a pull request before merging
+- Require at least 1 approval
+- Require conversation resolution before merging
+- Block direct pushes a `main`
+
+### Colaboradores
+
+Cuando se tengan los correos o usernames de GitHub, invitarlos desde `Settings` → `Collaborators and teams` del repositorio.
+
 ## Próxima evolución sugerida
 
 1. Agregar componentes reutilizables documentados por patrón.
