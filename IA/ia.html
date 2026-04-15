@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f07c2a" />
+    <title>IA · MiRest con IA</title>
+    <link rel="icon" type="image/png" href="../Caja/icon/favicon.png" />
+    <link rel="manifest" href="../Pwa/manifest.webmanifest" />
+    <link rel="stylesheet" href="../styles/tokens.css" />
+    <link rel="stylesheet" href="../styles/layout.css" />
+    <link rel="stylesheet" href="../styles/components.css" />
+    <link rel="stylesheet" href="../styles/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      /* ── IA Immersive Graphics (Gemini Live Style) ── */
+      :root {
+        --ia-bg: #0a0a0c;
+        --ia-glow: rgba(240, 124, 42, 0.2);
+        --ia-accent: #f07c2a;
+        --ia-accent-muted: rgba(240, 124, 42, 0.4);
+      }
+
+      body[data-module-key="ia"] {
+        background: var(--ia-bg);
+        overflow: hidden;
+      }
+
+      .ia-layout {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        position: relative;
+        z-index: 10;
+      }
+
+      /* Animated Background */
+      .ia-bg-mesh {
+        position: fixed; inset: 0;
+        background: radial-gradient(circle at 50% 50%, var(--ia-glow) 0%, transparent 70%);
+        opacity: 0.6; pointer-events: none; z-index: 1;
+        animation: ia-mesh-drift 10s ease-in-out infinite alternate;
+      }
+      @keyframes ia-mesh-drift {
+        from { transform: scale(1) translate(0, 0); }
+        to { transform: scale(1.2) translate(2%, 2%); }
+      }
+
+      /* Main Stage (Orb Area) */
+      .ia-stage {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 40px;
+        padding-top: 60px;
+      }
+
+      /* The AI Orb (Core) */
+      .ia-orb-container {
+        position: relative;
+        width: 220px; height: 220px;
+        display: grid; place-items: center;
+      }
+
+      .ia-orb {
+        width: 140px; height: 140px;
+        background: linear-gradient(135deg, var(--ia-accent), #ff9a44);
+        border-radius: 50%;
+        box-shadow: 0 0 60px var(--ia-glow), 0 0 120px var(--ia-glow);
+        position: relative; z-index: 5;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .ia-orb::before, .ia-orb::after {
+        content: ''; position: absolute; inset: -15px;
+        border-radius: 50%; border: 1px solid var(--ia-accent-muted);
+        animation: ia-orb-spin 4s linear infinite;
+      }
+      .ia-orb::after { inset: -30px; animation-duration: 6s; opacity: 0.5; }
+
+      @keyframes ia-orb-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+      /* Pulsing when active */
+      .ia-orb--active { animation: ia-orb-pulse 1.5s ease-in-out infinite; }
+      @keyframes ia-orb-pulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 60px var(--ia-glow); }
+        50% { transform: scale(1.1); box-shadow: 0 0 100px var(--ia-accent-muted); }
+      }
+
+      /* Chat Overlay (Transparent) */
+      .ia-chat-overlay {
+        position: absolute;
+        bottom: 180px; left: 50%;
+        transform: translateX(-50%);
+        width: 90%; max-width: 600px;
+        max-height: 300px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+        padding: 40px 0;
+        scrollbar-width: none;
+      }
+      .ia-chat-overlay::-webkit-scrollbar { display: none; }
+
+      .ia-msg {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 12px 20px; border-radius: 20px;
+        color: #fff; font-size: 15px; line-height: 1.5;
+        max-width: 85%; align-self: center;
+        text-align: center;
+        animation: ia-msg-fade-in 0.4s ease-out forwards;
+      }
+      .ia-msg--user { color: var(--ia-accent); font-weight: 500; }
+
+      @keyframes ia-msg-fade-in {
+        from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
+        to { opacity: 1; transform: translateY(0); filter: blur(0); }
+      }
+
+      /* Floating Controls */
+      .ia-bottom-controls {
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+        background: linear-gradient(to top, var(--ia-bg), transparent);
+      }
+
+      .ia-input-wrapper {
+        width: 100%; max-width: 500px;
+        position: relative;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        padding: 6px 6px 6px 20px;
+        display: flex; align-items: center;
+        transition: all 0.3s;
+      }
+      .ia-input-wrapper:focus-within {
+        border-color: var(--ia-accent);
+        box-shadow: 0 0 20px rgba(240, 124, 42, 0.15);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .ia-input-text {
+        flex: 1; background: none; border: none;
+        color: #fff; font-size: 16px; outline: none;
+        padding: 10px 0;
+      }
+
+      /* Voice/Mic Area */
+      .ia-voice-actions {
+        display: flex; align-items: center; gap: 20px;
+      }
+
+      .ia-main-mic {
+        width: 72px; height: 72px;
+        border-radius: 50%;
+        background: var(--ia-accent);
+        border: none; color: #fff;
+        cursor: pointer;
+        display: grid; place-items: center;
+        box-shadow: 0 4px 20px rgba(240, 124, 42, 0.4);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      .ia-main-mic:hover { transform: scale(1.1); }
+      .ia-main-mic.active {
+        background: #fff; color: var(--ia-accent);
+        animation: ia-mic-pulse 1.5s infinite;
+      }
+
+      @keyframes ia-mic-pulse {
+        0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+        70% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+      }
+
+      /* Sidebar/Header overrides for IA */
+      .ia-header {
+        position: absolute; top: 0; left: 0; right: 0;
+        padding: 24px 40px; display: flex;
+        justify-content: space-between; align-items: center;
+        z-index: 100;
+      }
+      .ia-brand { display: flex; align-items: center; gap: 12px; color: #fff; }
+      .ia-brand-logo { width: 32px; height: 32px; background: var(--ia-accent); border-radius: 8px; display: grid; place-items: center; font-weight: 800; font-size: 14px; }
+      
+      .ia-back-btn {
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+        color: #fff; padding: 8px 16px; border-radius: 12px;
+        text-decoration: none; font-size: 14px; font-weight: 600;
+        display: flex; align-items: center; gap: 8px;
+        transition: all 0.2s;
+      }
+      .ia-back-btn:hover { background: rgba(255,255,255,0.1); transform: translateX(-4px); }
+
+      /* Waveform Bars in Graphics mode */
+      .ia-gfx-bars {
+        display: flex; align-items: center; gap: 6px; height: 60px;
+      }
+      .ia-gfx-bar {
+        width: 3px; height: 10px; background: var(--ia-accent);
+        border-radius: 2px; transition: height 0.1s ease;
+      }
+    </style>
+  </head>
+  <body data-root-path="../" data-page-type="module" data-module-key="ia" data-theme="dark">
+    <div class="ia-bg-mesh"></div>
+
+    <div class="ia-layout">
+      <!-- Header -->
+      <header class="ia-header">
+        <div class="ia-brand">
+          <div class="ia-brand-logo">IA</div>
+          <div style="display:flex; flex-direction:column;">
+            <strong style="font-size: 16px; letter-spacing: 0.5px;">ARIA</strong>
+            <span style="font-size: 11px; opacity: 0.6; text-transform: uppercase; font-weight: 700;">Live Assistant</span>
+          </div>
+        </div>
+        <a href="../index.html" class="ia-back-btn">
+          <i data-lucide="arrow-left" style="width:16px;height:16px"></i>
+          Volver al Dashboard
+        </a>
+      </header>
+
+      <!-- Stage (The Orb) -->
+      <section class="ia-stage">
+        <div class="ia-orb-container" id="iaOrbContainer">
+          <div class="ia-orb" id="iaOrb"></div>
+        </div>
+        
+        <div class="ia-gfx-bars" id="iaVisualizerGfx">
+          <!-- Bars generated by JS -->
+        </div>
+      </section>
+
+      <!-- Chat Overlay -->
+      <div class="ia-chat-overlay" id="iaChatOverlay">
+        <div class="ia-msg">¡Hola! Soy ARIA. Estoy lista para asistirte por voz o texto. ¿Qué necesitas del proyecto hoy?</div>
+      </div>
+
+      <!-- Controls -->
+      <footer class="ia-bottom-controls">
+        <div class="ia-voice-actions">
+          <button class="ia-main-mic" id="btnMicLive" title="Activar voz">
+            <i data-lucide="mic" style="width:32px;height:32px"></i>
+          </button>
+        </div>
+
+        <div class="ia-input-wrapper" style="justify-content: space-between; gap: 12px; padding-left: 12px;">
+          <select id="iaRoleSelect" aria-label="Perfil de usuario" style="background: transparent; color: #fff; border: 0; outline: 0; font-weight: 700;">
+            <option value="admin">Administrador</option>
+            <option value="almacenista">Almacenista</option>
+            <option value="atencion_clientes">Atención al Cliente</option>
+            <option value="operador_pedidos">Operador de Pedidos</option>
+            <option value="chef_costos">Chef / Costos</option>
+          </select>
+          <span style="opacity: 0.25;">|</span>
+          <span style="font-size: 12px; font-weight: 700; opacity: 0.65; white-space: nowrap;">Personalidad activa</span>
+        </div>
+
+        <div class="ia-input-wrapper">
+          <input type="text" class="ia-input-text" id="iaInputLive" placeholder="Pregunta algo sobre los módulos..." autocomplete="off" />
+          <button class="btn btn--primary" id="btnSendLive" style="border-radius: 25px; padding: 10px 24px; margin: 4px;">
+            Enviar
+            <i data-lucide="send" style="width:16px;height:16px; margin-left: 8px;"></i>
+          </button>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 10px;">
+          <button class="btn btn--secondary btn--sm quick-cmd" style="background: rgba(255,255,255,0.05); color: #fff; border: none; border-radius: 15px;">"Estado de Cocina"</button>
+          <button class="btn btn--secondary btn--sm quick-cmd" style="background: rgba(255,255,255,0.05); color: #fff; border: none; border-radius: 15px;">"Resumen de Caja"</button>
+          <button class="btn btn--secondary btn--sm quick-cmd" style="background: rgba(255,255,255,0.05); color: #fff; border: none; border-radius: 15px;">"Consultar Almacén"</button>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Theme Toggle -->
+    <button class="theme-fab" id="themeToggleIA" title="Cambiar modo">
+      <i data-lucide="moon" id="themeIconIA"></i>
+    </button>
+
+    <!-- Scripts -->
+    <script type="module" src="../scripts/app.js"></script>
+    <script type="module" src="./ia.js"></script>
+  </body>
+</html>

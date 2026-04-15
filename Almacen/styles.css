@@ -1,0 +1,371 @@
+/* ================================================
+   Módulo de Almacén - MiRest con IA
+   Diseño Premium Estandarizado
+   ================================================ */
+
+.almacen-container {
+    padding: clamp(1rem, 2vw, var(--space-6));
+    min-height: calc(100vh - 200px);
+    background-color: var(--color-surface);
+    background-image: 
+        radial-gradient(circle at 2px 2px, var(--color-border) 1.5px, transparent 0);
+    background-size: 32px 32px;
+    position: relative;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--color-border);
+}
+
+.almacen-container::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 120px 60px var(--color-surface);
+    z-index: 1;
+}
+
+.almacen-container > * {
+    position: relative;
+    z-index: 2;
+}
+
+/* --- CABECERA DEL MÓDULO --- */
+.module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    width: 100%;
+}
+
+.header-left {
+    flex: 0 0 320px;
+}
+
+.header-left h2 {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--color-text);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.header-stats {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+}
+
+.stat-badge {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.header-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    max-width: none;
+}
+
+.header-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+}
+
+/* --- SEARCH BOX PREMIUM --- */
+.search-box {
+    position: relative;
+    width: 320px;
+}
+
+.search-box i,
+.search-box svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-soft);
+    width: 18px;
+    height: 18px;
+}
+
+.search-box input {
+    width: 100%;
+    background: var(--color-surface-muted);
+    border: 1px solid var(--color-border);
+    padding: 12px 16px 12px 42px;
+    border-radius: 12px;
+    outline: none;
+    font-size: 0.95rem;
+    color: var(--color-text);
+    transition: var(--transition-base);
+}
+
+.search-box input:focus {
+    background: var(--color-surface);
+    border-color: var(--color-primary-400);
+    box-shadow: 0 0 0 3px rgba(222, 90, 37, 0.05);
+}
+
+/* --- BOTÓN PREMIUM --- */
+.btn-orange-gradient {
+    background: linear-gradient(135deg, #f26522 0%, #de5a25 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 6px 16px rgba(222, 90, 37, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-orange-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(222, 90, 37, 0.35);
+}
+
+.btn-icon-refresh {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-base);
+}
+
+.btn-icon-refresh:hover {
+    background: var(--color-surface-muted);
+    color: var(--color-text);
+}
+
+/* --- MÉTRICAS GRID --- */
+.mod-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-6);
+    margin-bottom: var(--space-6);
+}
+
+.mod-stat-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.mod-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.mod-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 1.25rem;
+}
+
+.mod-stat-icon--success { background: var(--color-success-soft); color: var(--color-success); }
+.mod-stat-icon--warning { background: var(--color-warning-soft); color: var(--color-warning); }
+.mod-stat-icon--danger { background: #fee2e2; color: #ef4444; }
+
+.mod-stat-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.mod-stat-value {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--color-text);
+    line-height: 1;
+}
+
+/* --- FILTROS --- */
+.filter-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--color-surface-muted);
+    padding: 12px 20px;
+    border-radius: 16px;
+    border: 1px solid var(--color-border);
+}
+
+.filter-pills {
+    display: flex;
+    gap: 12px;
+}
+
+.pill-select {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.pill-select:focus {
+    border-color: var(--color-primary-400);
+}
+
+/* --- TABLA PREMIUM --- */
+.table-wrapper {
+    background: var(--color-surface);
+    border-radius: 16px;
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.recetas-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.recetas-table th {
+    background: #f8fafc;
+    padding: 16px 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+}
+
+.recetas-table td {
+    padding: 16px 20px;
+    font-size: 0.9rem;
+    color: var(--color-text);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.recetas-table tr:last-child td {
+    border-bottom: none;
+}
+
+.recetas-table tr:hover td {
+    background: #f1f5f9;
+}
+
+body[data-theme="dark"] .recetas-table tr:hover td {
+    background: rgba(255,255,255,0.02);
+}
+
+/* --- BADGES DE ESTADO --- */
+.badge-status {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.badge-status--ok { background: var(--color-success-soft); color: var(--color-success); }
+.badge-status--bajo { background: var(--color-warning-soft); color: var(--color-warning); }
+.badge-status--critico { background: #fee2e2; color: #ef4444; }
+
+.stock-indicator {
+    font-weight: 700;
+    font-family: var(--font-display);
+}
+
+/* --- PAGINACIÓN ESTILO CARRUSEL --- */
+.pagination-carrusel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 32px;
+    padding: 16px;
+    background: var(--color-surface-muted);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border);
+}
+
+.pagination-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all 0.2s var(--transition-base);
+    box-shadow: var(--shadow-sm);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    border-color: var(--color-primary-400);
+    color: var(--color-primary-500);
+    transform: scale(1.1);
+    box-shadow: var(--shadow-md);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: var(--color-border);
+}
+
+.pagination-info {
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--color-text);
+    font-size: 0.95rem;
+    min-width: 120px;
+    text-align: center;
+}
+
+.pagination-info span {
+    color: var(--color-primary-500);
+}

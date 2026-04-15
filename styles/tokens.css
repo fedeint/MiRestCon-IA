@@ -1,30 +1,36 @@
 :root {
   color-scheme: light;
-  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-sans: var(--font-body);
 
-  --color-primary-400: #f6a456;
-  --color-primary-500: #de5a25;
-  --color-primary-gradient: linear-gradient(135deg, #f6a456, #de5a25);
+  --color-primary-400: #fb923c;
+  --color-primary-500: #f97316;
+  --color-primary-gradient: linear-gradient(135deg, #fb923c, #f97316);
   --color-nav-900: #15192c;
   --color-nav-950: #0f1324;
 
-  --color-bg: #f8f9fb;
-  --color-bg-warm: #fff8f0;
+  --color-bg: #f3f5f8;
+  --color-bg-warm: #fff9f2;
   --color-surface: #ffffff;
-  --color-surface-muted: #f3f4f6;
-  --color-surface-soft: #fff4ea;
-  --color-border: #e5e7eb;
-  --color-border-strong: #d6dae2;
-  --color-text: #15192c;
-  --color-text-muted: #6b7280;
-  --color-text-soft: #9ca3af;
+  --color-surface-muted: #edf0f5;
+  --color-surface-soft: #fff1e6;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-text: #0f172a;
+  --color-text-muted: #475569;
+  --color-text-soft: #94a3b8;
 
-  --color-success: #22c55e;
-  --color-success-soft: #f0fdf4;
+  --color-success: #10b981;
+  --color-success-soft: #ecfdf5;
   --color-warning: #f59e0b;
   --color-warning-soft: #fffbeb;
-  --color-info: #3b82f6;
-  --color-info-soft: #eff6ff;
+  --color-info: #0ea5e9;
+  --color-info-soft: #f0f9ff;
+
+  --color-accent: #f07c2a;
+  --color-accent-dark: #d96a1e;
+  --color-accent-soft: rgba(240, 124, 42, 0.15);
 
   --space-1: 4px;
   --space-2: 8px;
@@ -38,13 +44,13 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --radius-xl: 20px;
+  --radius-xl: 24px;
   --radius-full: 999px;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
-  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-elevated: 0 12px 32px rgba(17, 24, 39, 0.12);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-elevated: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
 
   --sidebar-width: 260px;
   --content-max: 1480px;

@@ -8,13 +8,16 @@ import {
   toHref,
 } from "./navigation.js";
 import { initializeDashboard } from "./dashboard.js";
+import { registerServiceWorker } from "../Pwa/pwa.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const pageType = document.body.dataset.pageType || "dashboard";
   const activeKey = document.body.dataset.moduleKey || "dashboard";
   const activeItem = getModuleByKey(activeKey);
+  const rootPath = (document.body.dataset.rootPath || "").replace(/\/+$/, "");
 
   document.body.classList.add("page-ready");
+  registerServiceWorker(rootPath).catch(() => null);
   renderSidebar(document.getElementById("sidebarNav"), activeKey);
   initializeThemeToggle(document.getElementById("themeToggle"));
   initializeResponsiveSidebar(pageType);
@@ -41,7 +44,7 @@ function initializeDashboardPage() {
 
 function initializeModulePage(module) {
   const dashboardHref = toHref("index.html");
-  const moduleFolder = module.path.replace("/index.html", "/");
+  const moduleFolder = module.path.split("/")[0] + "/";
 
   setText("pageEyebrow", "Módulo");
   setText("pageTitle", module.label);
@@ -83,8 +86,6 @@ function capitalize(value) {
 }
 
 function initializeResponsiveSidebar(pageType) {
-  if (pageType !== "dashboard") return;
-
   const sidebar = document.getElementById("appSidebar");
   const toggle = document.getElementById("sidebarToggle");
   const backdrop = document.getElementById("sidebarBackdrop");
@@ -93,6 +94,8 @@ function initializeResponsiveSidebar(pageType) {
 
   const closeSidebar = () => setSidebarState(false, sidebar, toggle);
   const openSidebar = () => setSidebarState(true, sidebar, toggle);
+
+  closeSidebar();
 
   toggle.addEventListener("click", () => {
     const shouldOpen = !document.body.classList.contains("sidebar-open");
@@ -119,6 +122,8 @@ function initializeResponsiveSidebar(pageType) {
       closeSidebar();
     }
   });
+
+  window.addEventListener("pageshow", closeSidebar);
 }
 
 function setSidebarState(isOpen, sidebar, toggle) {

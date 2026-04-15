@@ -1,126 +1,199 @@
 /**
  * caja.js — Módulo Caja
- * Estado, apertura/cierre con bienvenida, modales y transacciones
+ * Lógica de negocio y eventos específicos de Caja
  */
 
 import { render } from './render.js';
+import { showToast, openModal, closeModal } from '../scripts/ui-utils.js';
 
 /* ── Estado ── */
 let cajaOpen = false;
 let openedAt = null;
 let transactions = [];
+let passwordAction = null; // 'open' o 'close'
+const CAJA_PASSWORD = '9090';
 
 const meseros = [
-  { name: 'Carlos', mesa: 'Mesa 1', products: 0 },
-  { name: 'Maria',  mesa: 'Mesa 2', products: 0 },
-  { name: 'Pedro',  mesa: 'Mesa 3', products: 0 },
+  { name: 'Carlos', mesa: 'Mesa 1', products: 0, status: 'available' },
+  { name: 'Maria',  mesa: 'Mesa 2', products: 0, status: 'busy' },
+  { name: 'Pedro',  mesa: 'Mesa 3', products: 0, status: 'available' },
 ];
 
 /* ── Referencias DOM ── */
 const closedScreen  = document.getElementById('cajaClosedScreen');
 const openContent   = document.getElementById('cajaOpenContent');
-const btnToggle     = document.getElementById('btnToggleCaja');   // botón en pantalla cerrada
-const btnClose      = document.getElementById('btnCloseCaja');    // botón en pantalla abierta
+const btnToggle     = document.getElementById('btnToggleCaja');   
+const btnClose      = document.getElementById('btnCloseCaja');    
 const btnIncome     = document.getElementById('btnIncome');
 const btnExpense    = document.getElementById('btnExpense');
 const cajaBadge     = document.getElementById('cajaBadge');
 const cajaTimeEl    = document.getElementById('cajaTime');
-const welcomeToast  = document.getElementById('welcomeToast');
 
-/* ── Toast de bienvenida ── */
-function showWelcomeToast() {
-  welcomeToast.classList.add('show');
-  setTimeout(() => welcomeToast.classList.remove('show'), 4000);
+/* ── Inicialización ── */
+document.addEventListener('DOMContentLoaded', () => {
+  // Selectores de botones
+  initSelectableButtons('incConceptGroup', 'incConcept');
+  initSelectableButtons('incMethodGroup', 'incMethod');
+  initSelectableButtons('expConceptGroup', 'expConcept');
+  
+  // Lucide icons para elementos estáticos
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+});
+
+/* ── Lógica de Seguridad (Password) ── */
+const passwordModal = document.getElementById('passwordModal');
+const passwordInput = document.getElementById('cajaPassword');
+const passwordError = document.getElementById('passwordError');
+const btnConfirmPassword = document.getElementById('btnConfirmPassword');
+
+function openPasswordModal(action) {
+  passwordAction = action;
+  if (passwordInput) passwordInput.value = '';
+  if (passwordError) passwordError.style.display = 'none';
+  openModal('passwordModal');
+  setTimeout(() => { if (passwordInput) passwordInput.focus(); }, 100);
+}
+
+if (btnConfirmPassword) {
+  btnConfirmPassword.addEventListener('click', () => {
+    if (passwordInput.value === CAJA_PASSWORD) {
+      closeModal('passwordModal');
+      if (passwordAction === 'open') performOpenCaja();
+      else if (passwordAction === 'close') performCloseCaja();
+    } else {
+      if (passwordError) passwordError.style.display = 'block';
+      if (passwordInput) {
+        passwordInput.value = '';
+        passwordInput.focus();
+      }
+    }
+  });
+}
+
+if (passwordInput) {
+  passwordInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') btnConfirmPassword.click();
+  });
 }
 
 /* ── Abrir Caja ── */
-btnToggle.addEventListener('click', () => {
+function performOpenCaja() {
   cajaOpen = true;
   openedAt = new Date();
+  if (cajaBadge) {
+    cajaBadge.textContent = 'Abierta';
+    cajaBadge.className   = 'cj-badge cj-badge--green';
+  }
+  if (closedScreen) closedScreen.style.display = 'none';
+  if (openContent) openContent.style.display  = 'block';
 
-  // Actualizar badge
-  cajaBadge.textContent = 'Abierta';
-  cajaBadge.className   = 'cj-badge cj-badge--green';
-
-  // Mostrar contenido y ocultar pantalla cerrada
-  closedScreen.style.display = 'none';
-  openContent.style.display  = 'block';
-
-  // Toast de bienvenida
-  showWelcomeToast();
-
+  showToast('welcomeToast', 'welcomeToastMsg', '¡Bienvenido, Cajero! <strong>Turno iniciado</strong>', 'welcomeToastIcon', 'check-circle');
   render(transactions, meseros);
-});
+  
+  // Iniciar onboarding si corresponde
+  if (window.startCajaOnboarding) window.startCajaOnboarding();
+}
+
+if (btnToggle) {
+  btnToggle.addEventListener('click', () => openPasswordModal('open'));
+}
 
 /* ── Cerrar Caja ── */
-btnClose.addEventListener('click', () => {
-  if (!confirm('¿Confirmas el cierre de caja para este turno?')) return;
-
+function performCloseCaja() {
   cajaOpen = false;
   openedAt = null;
+  if (cajaBadge) {
+    cajaBadge.textContent = 'Cerrada';
+    cajaBadge.className   = 'cj-badge cj-badge--red';
+  }
+  if (cajaTimeEl) cajaTimeEl.textContent = '';
+  if (openContent) openContent.style.display  = 'none';
+  if (closedScreen) closedScreen.style.display = 'flex';
+}
 
-  cajaBadge.textContent = 'Cerrada';
-  cajaBadge.className   = 'cj-badge cj-badge--red';
-  cajaTimeEl.textContent = '';
-
-  openContent.style.display  = 'none';
-  closedScreen.style.display = 'flex';
-});
+if (btnClose) {
+  btnClose.addEventListener('click', () => {
+    if (confirm('¿Confirmas el cierre de caja para este turno?')) {
+      openPasswordModal('close');
+    }
+  });
+}
 
 /* ── Chip de tiempo en vivo ── */
 setInterval(() => {
-  if (cajaOpen && openedAt) {
-    cajaTimeEl.textContent =
-      'Abierta: ' + openedAt.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+  if (cajaOpen && openedAt && cajaTimeEl) {
+    cajaTimeEl.textContent = 'Abierta: ' + openedAt.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
   }
 }, 1000);
 
 /* ── Modales ── */
 window.closeAllModals = function () {
-  document.querySelectorAll('.cj-modal-overlay').forEach(m => m.classList.remove('open'));
+  document.querySelectorAll('.cj-modal-overlay.open').forEach(m => closeModal(m.id));
 };
 
-btnIncome.addEventListener('click',  () => document.getElementById('incomeModal').classList.add('open'));
-btnExpense.addEventListener('click', () => document.getElementById('expenseModal').classList.add('open'));
+if (btnIncome) btnIncome.addEventListener('click',  () => openModal('incomeModal'));
+if (btnExpense) btnExpense.addEventListener('click', () => openModal('expenseModal'));
 
 document.querySelectorAll('.cj-modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
 });
+
+/* ── Selectable Buttons ── */
+function initSelectableButtons(groupId, inputId) {
+  const group = document.getElementById(groupId);
+  const input = document.getElementById(inputId);
+  if (!group || !input) return;
+
+  group.querySelectorAll('.cj-selectable-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      group.querySelectorAll('.cj-selectable-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      input.value = btn.dataset.value;
+    });
+  });
+}
 
 /* ── Registrar Ingreso ── */
-document.getElementById('submitIncome').addEventListener('click', () => {
-  const amount = parseFloat(document.getElementById('incAmount').value);
-  if (!amount || amount <= 0) { alert('Ingresa un monto válido'); return; }
+const submitIncome = document.getElementById('submitIncome');
+if (submitIncome) {
+  submitIncome.addEventListener('click', () => {
+    const amount = parseFloat(document.getElementById('incAmount').value);
+    if (!amount || amount <= 0) { alert('Ingresa un monto válido'); return; }
 
-  transactions.push({
-    type:    'income',
-    amount,
-    concept: document.getElementById('incConcept').value || 'Ingreso',
-    note:    document.getElementById('incNote').value,
-    time:    new Date(),
+    transactions.push({
+      type:    'income',
+      amount,
+      concept: document.getElementById('incConcept').value || 'Ingreso',
+      method:  document.getElementById('incMethod').value || 'Efectivo',
+      note:    document.getElementById('incNote').value,
+      time:    new Date(),
+    });
+
+    document.getElementById('incAmount').value = '';
+    document.getElementById('incNote').value   = '';
+    closeAllModals();
+    render(transactions, meseros);
   });
-
-  document.getElementById('incAmount').value = '';
-  document.getElementById('incNote').value   = '';
-  closeAllModals();
-  render(transactions, meseros);
-});
+}
 
 /* ── Registrar Egreso ── */
-document.getElementById('submitExpense').addEventListener('click', () => {
-  const amount = parseFloat(document.getElementById('expAmount').value);
-  if (!amount || amount <= 0) { alert('Ingresa un monto válido'); return; }
+const submitExpense = document.getElementById('submitExpense');
+if (submitExpense) {
+  submitExpense.addEventListener('click', () => {
+    const amount = parseFloat(document.getElementById('expAmount').value);
+    if (!amount || amount <= 0) { alert('Ingresa un monto válido'); return; }
 
-  transactions.push({
-    type:    'expense',
-    amount,
-    concept: document.getElementById('expConcept').value || 'Egreso',
-    note:    document.getElementById('expNote').value,
-    time:    new Date(),
+    transactions.push({
+      type:    'expense',
+      amount,
+      concept: document.getElementById('expConcept').value || 'Egreso',
+      note:    document.getElementById('expNote').value,
+      time:    new Date(),
+    });
+
+    document.getElementById('expAmount').value = '';
+    document.getElementById('expNote').value   = '';
+    closeAllModals();
+    render(transactions, meseros);
   });
-
-  document.getElementById('expAmount').value = '';
-  document.getElementById('expNote').value   = '';
-  closeAllModals();
-  render(transactions, meseros);
-});
+}

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#f07c2a" />
+    <title>MiRest con IA | Gestión de Almacén</title>
+    <script>
+      document.documentElement.classList.add("js");
+      document.documentElement.dataset.theme = localStorage.getItem("mirest-ui-theme") || "light";
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..800&family=Inter:wght@300..900&display=swap" rel="stylesheet" />
+    <link rel="manifest" href="../Pwa/manifest.webmanifest" />
+    
+    <link rel="stylesheet" href="../styles/tokens.css" />
+    <link rel="stylesheet" href="../styles/base.css" />
+    <link rel="stylesheet" href="../styles/layout.css" />
+    <link rel="stylesheet" href="../styles/components.css" />
+    <link rel="stylesheet" href="../styles/premium-modules.css" />
+    
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-root-path="../" data-page-type="module" data-module-key="almacen">
+    <div class="app-shell">
+      <aside class="sidebar" id="appSidebar" aria-label="Panel lateral">
+        <div class="sidebar__brand">
+          <div class="brand-mark" aria-hidden="true">IA</div>
+          <div class="brand-copy">
+            <span class="brand-copy__eyebrow">MiRest</span>
+            <strong>MiRest con IA</strong>
+            <span>Dashboard administrativo</span>
+          </div>
+        </div>
+        <nav id="sidebarNav" class="sidebar__nav" aria-label="Navegación principal"></nav>
+
+        <div class="sidebar__footer card card--sidebar">
+          <span class="sidebar__footer-label" id="moduleStatusLabel">Módulo activo</span>
+          <strong id="moduleTitleDisplay">Almacén</strong>
+          <p id="moduleDescriptionDisplay">Control de stock e insumos.</p>
+        </div>
+      </aside>
+
+      <button
+        class="sidebar-backdrop"
+        id="sidebarBackdrop"
+        type="button"
+        aria-label="Cerrar navegación lateral"
+      ></button>
+
+      <div class="app-main">
+        <header class="topbar">
+          <div class="topbar__lead">
+            <button
+              class="icon-button topbar__menu-toggle"
+              id="sidebarToggle"
+              type="button"
+              aria-label="Abrir navegación lateral"
+              aria-controls="appSidebar"
+              aria-expanded="false"
+            >
+              <i data-lucide="menu"></i>
+            </button>
+
+            <div class="topbar__copy">
+              <span class="eyebrow" id="pageEyebrow">Gestión</span>
+              <h1 id="pageTitle">Almacén</h1>
+              <p id="pageSubtitle">Control de inventario y suministros</p>
+            </div>
+          </div>
+
+          <div class="topbar__actions">
+            <span class="chip chip--soft" id="pageContextChip">AL</span>
+            <div class="avatar" id="pageAvatar" aria-label="Iniciales del módulo">AL</div>
+          </div>
+        </header>
+
+        <main class="module-page">
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="../index.html" id="breadcrumbHome">Dashboard</a>
+            <span>/</span>
+            <span id="moduleBreadcrumbCurrent">Almacén</span>
+          </nav>
+
+          <div class="module-stack">
+            <div class="almacen-container">
+                <header class="module-header">
+                    <div class="header-left">
+                        <h2><i data-lucide="package"></i> Almacén</h2>
+                        <div class="header-stats">
+                            <span class="stat-badge"><i data-lucide="box"></i> <span id="totalInsumos">0</span> insumos</span>
+                            <span class="stat-badge"><i data-lucide="alert-triangle" style="color: var(--color-warning)"></i> <span id="stockBajo">0</span> bajos</span>
+                        </div>
+                    </div>
+
+                    <div class="header-right">
+                        <button class="btn-orange-gradient" id="btnNuevoInsumo">
+                            <i data-lucide="plus"></i> Nuevo Insumo
+                        </button>
+                        <div class="search-box">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="buscador" placeholder="Buscar insumo...">
+                        </div>
+                        <button class="btn-icon-refresh" onclick="location.reload()" title="Refrescar">
+                            <i data-lucide="refresh-cw"></i>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Panel de Métricas -->
+                <div class="mod-metrics-grid">
+                    <article class="mod-stat-card">
+                        <div class="mod-stat-icon mod-stat-icon--success">
+                            <i data-lucide="check-circle"></i>
+                        </div>
+                        <div class="mod-stat-info">
+                            <span class="mod-stat-label">Stock Óptimo</span>
+                            <div class="mod-stat-value" id="stockOk">0</div>
+                        </div>
+                    </article>
+                    <article class="mod-stat-card">
+                        <div class="mod-stat-icon mod-stat-icon--warning">
+                            <i data-lucide="alert-triangle"></i>
+                        </div>
+                        <div class="mod-stat-info">
+                            <span class="mod-stat-label">Stock Bajo</span>
+                            <div class="mod-stat-value" id="stockBajoMetric">0</div>
+                        </div>
+                    </article>
+                    <article class="mod-stat-card">
+                        <div class="mod-stat-icon mod-stat-icon--danger">
+                            <i data-lucide="alert-circle"></i>
+                        </div>
+                        <div class="mod-stat-info">
+                            <span class="mod-stat-label">Stock Crítico</span>
+                            <div class="mod-stat-value" id="stockCritico">0</div>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- Filtros Secundarios -->
+                <div class="filter-bar" style="margin-bottom: 2rem;">
+                    <div class="filter-pills">
+                        <select id="filtroCategoria" class="pill-select">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                        <select id="filtroEstado" class="pill-select">
+                            <option value="">Todos los estados</option>
+                            <option value="ok">OK</option>
+                            <option value="bajo">Bajo</option>
+                            <option value="critico">Crítico</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tabla de Inventario -->
+                <div class="table-wrapper">
+                    <table class="recetas-table" id="tablaInventario">
+                        <thead>
+                            <tr>
+                                <th data-sort="codigo">Código</th>
+                                <th data-sort="nombre">Nombre</th>
+                                <th data-sort="categoria">Categoría</th>
+                                <th data-sort="costoUnitario">Costo Unit.</th>
+                                <th data-sort="estado">Estado</th>
+                                <th data-sort="stock">Stock Actual</th>
+                                <th data-sort="stockMinimo">Mínimo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaInventario">
+                            <!-- Filas dinámicas -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación Estilo Carrusel -->
+                <div class="pagination-carrusel">
+                    <button id="prevPage" class="pagination-btn" title="Anterior">
+                        <i data-lucide="chevron-left"></i>
+                    </button>
+                    <div class="pagination-info">
+                        Página <span id="currentPage">1</span> de <span id="totalPages">1</span>
+                    </div>
+                    <button id="nextPage" class="pagination-btn" title="Siguiente">
+                        <i data-lucide="chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+          </div>
+          
+          <footer class="page-footer">
+            MiRest con IA · <span id="currentYear">2026</span> · Módulo de Almacén.
+          </footer>
+        </main>
+      </div>
+    </div>
+
+    <button id="themeToggle" class="theme-fab" type="button" aria-label="Cambiar tema">
+      <i data-lucide="moon"></i>
+    </button>
+
+    <script type="module" src="../scripts/app.js"></script>
+    <script type="module" src="almacen.js"></script>
+</body>
+</html>
