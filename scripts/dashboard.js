@@ -47,19 +47,32 @@ function renderModuleGrid() {
   if (!target) return;
 
   target.innerHTML = MODULES.map(
-    (module) => `
+    (module) => {
+      const iconName = module.icon || "circle";
+      return `
       <a class="module-card" href="${toHref(module.path)}">
         <div class="module-card__header">
-          <span class="module-card__token">${module.short}</span>
-          <span class="chip chip--soft">Módulo en construcción</span>
+          <span class="module-card__token">
+            <i data-lucide="${iconName}" style="width:32px;height:32px;color:var(--color-accent)"></i>
+          </span>
+          <span class="chip chip--soft">Módulo activo</span>
         </div>
         <h3>${module.label}</h3>
-        <div class="module-card__footer">
+        <p style="font-size: 13px; color: var(--color-text-muted); line-height: 1.4; margin-top: 4px;">
+          ${module.description}
+        </p>
+        <div class="module-card__footer" style="margin-top: 12px;">
           <span class="module-card__cta">Entrar al módulo →</span>
         </div>
       </a>
-    `,
+    `;
+    },
   ).join("");
+  
+  // Re-inicializar iconos de Lucide
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
 }
 
 function renderSystemHighlights() {

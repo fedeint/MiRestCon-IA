@@ -7,7 +7,7 @@ El shell general del sistema vive en la raíz del proyecto:
 - `index.html`: dashboard principal.
 - `styles/`: tokens, base visual, layout, componentes y estilos específicos.
 - `scripts/`: navegación global, bootstrap del shell y render del dashboard.
-- `Almacen/index.html` a `Recetas/index.html`: entry points individuales por módulo.
+- `Caja/caja.html`, `Cocina/cocina.html`, etc.: entry points individuales por módulo con nombres descriptivos.
 
 ## Cómo abrir el proyecto
 

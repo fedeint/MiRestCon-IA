@@ -8,7 +8,8 @@ export const MODULES = [
     key: "almacen",
     label: "Almacen",
     short: "AL",
-    path: "Almacen/index.html",
+    icon: "package",
+    path: "Almacen/almacen.html",
     description: "Control base de stock, insumos y movimientos internos.",
     owner:
       "Este entry point queda reservado para el frontend definitivo del equipo de Almacen.",
@@ -22,7 +23,8 @@ export const MODULES = [
     key: "caja",
     label: "Caja",
     short: "CJ",
-    path: "Caja/index.html",
+    icon: "banknote",
+    path: "Caja/caja.html",
     description: "Apertura, cierre y flujo operativo de caja para el POS.",
     owner: "Este entry point queda reservado para el frontend definitivo del equipo de Caja.",
     handoff: [
@@ -32,10 +34,25 @@ export const MODULES = [
     ],
   },
   {
+    key: "cocina",
+    label: "Cocina",
+    short: "CK",
+    icon: "flame",
+    path: "Cocina/cocina.html",
+    description: "Vista operativa para producción, cola y estado de preparación.",
+    owner: "Este entry point queda reservado para el frontend definitivo del equipo de Cocina.",
+    handoff: [
+      "Preparar una UI orientada a velocidad operativa y lectura rápida.",
+      "Reutilizar el sistema de layout y tipografía compartido.",
+      "Conservar breadcrumb y retorno al dashboard en toda vista nueva.",
+    ],
+  },
+  {
     key: "clientes",
     label: "Clientes",
     short: "CL",
-    path: "Clientes/index.html",
+    icon: "users",
+    path: "Clientes/clientes.html",
     description: "Base de clientes, historial y experiencias de fidelización.",
     owner:
       "Este entry point queda reservado para el frontend definitivo del equipo de Clientes.",
@@ -46,24 +63,24 @@ export const MODULES = [
     ],
   },
   {
-    key: "cocina",
-    label: "Cocina",
-    short: "CK",
-    path: "Cocina/index.html",
-    description: "Vista operativa para producción, cola y estado de preparación.",
-    owner:
-      "Este entry point queda reservado para el frontend definitivo del equipo de Cocina.",
+    key: "productos",
+    label: "Productos",
+    short: "PR",
+    icon: "tag",
+    path: "productos/productos.html",
+    description: "Gestión detallada de la carta de productos y precios.",
+    owner: "Módulo de gestión de productos.",
     handoff: [
-      "Preparar una UI orientada a velocidad operativa y lectura rápida.",
-      "Reutilizar el sistema de layout y tipografía compartido.",
-      "Conservar breadcrumb y retorno al dashboard en toda vista nueva.",
+      "Implementar la vista de productos usando el Design System.",
+      "Asegurar la consistencia con la paleta de colores premium.",
     ],
   },
   {
     key: "delivery-afiliados",
-    label: "DeliveryAfiliados",
+    label: "Delivery",
     short: "DA",
-    path: "DeliveryAfiliados/index.html",
+    icon: "truck",
+    path: "Delivery/delivery.html",
     description: "Operación de delivery, marketplaces y afiliados externos.",
     owner:
       "Este entry point queda reservado para el frontend definitivo del equipo de DeliveryAfiliados.",
@@ -74,24 +91,26 @@ export const MODULES = [
     ],
   },
   {
-    key: "reportes",
-    label: "Reportes",
-    short: "RP",
-    path: "Reportes/index.html",
-    description: "Reportes, indicadores y visualización operativa del negocio.",
+    key: "facturacion",
+    label: "Facturacion",
+    short: "FC",
+    icon: "file-text",
+    path: "Facturacion/facturacion.html",
+    description: "Comprobantes, emisión, control tributario y estados de venta.",
     owner:
-      "Este entry point queda reservado para el frontend definitivo del equipo de Reportes.",
+      "Este entry point queda reservado para el frontend definitivo del equipo de Facturacion.",
     handoff: [
-      "Preparar una jerarquía visual clara para métricas y reportes.",
-      "Utilizar el set global de cards y componentes compartidos.",
-      "Documentar futuras vistas secundarias dentro de la carpeta del módulo.",
+      "Mantener el shell global sin duplicar estilos compartidos.",
+      "Reutilizar tokens y componentes comunes para cards, badges y tablas.",
+      "Mantener breadcrumb y retorno al dashboard en toda vista nueva.",
     ],
   },
   {
     key: "menu-actual",
     label: "MenuActual",
     short: "MN",
-    path: "MenuActual/index.html",
+    icon: "list",
+    path: "MenuActual/menu-actual.html",
     description: "Carta vigente, categorías y disponibilidad comercial del menú.",
     owner:
       "Este entry point queda reservado para el frontend definitivo del equipo de MenuActual.",
@@ -105,7 +124,8 @@ export const MODULES = [
     key: "pedidos",
     label: "Pedidos",
     short: "PD",
-    path: "Pedidos/index.html",
+    icon: "shopping-bag",
+    path: "Pedidos/implementacion/pedidos.html",
     description: "Pedidos de salón, delivery y coordinación operativa central.",
     owner:
       "Este entry point queda reservado para el frontend definitivo del equipo de Pedidos.",
@@ -119,7 +139,8 @@ export const MODULES = [
     key: "recetas",
     label: "Recetas",
     short: "RC",
-    path: "Recetas/index.html",
+    icon: "book-open",
+    path: "Recetas/recetas.html",
     description: "Recetas, costos, porciones y estandarización operativa.",
     owner:
       "Este entry point queda reservado para el frontend definitivo del equipo de Recetas.",
@@ -129,6 +150,35 @@ export const MODULES = [
       "Mantener las mejoras compartidas dentro de la capa global del proyecto.",
     ],
   },
+  {
+    key: "reportes",
+    label: "Reportes",
+    short: "RP",
+    icon: "bar-chart-2",
+    path: "Reportes/reportes.html",
+    description: "Análisis detallado de ventas, costos y rendimiento operativo.",
+    owner:
+      "Este entry point queda reservado para el frontend definitivo del equipo de Reportes.",
+    handoff: [
+      "Implementar visualizaciones de datos y dashboards analíticos.",
+      "Utilizar el sistema de tokens para gráficos y tablas.",
+      "Asegurar la navegación fluida entre diferentes tipos de reportes.",
+    ],
+  },
+  {
+    key: "ia",
+    label: "Asistente IA",
+    short: "IA",
+    icon: "zap",
+    path: "IA/ia.html",
+    description: "Inteligencia artificial centralizada para gestión y análisis.",
+    owner: "Módulo de IA basado en Gemini Live para control total del proyecto.",
+    handoff: [
+      "Integrar WebSocket para comunicación multimodal en tiempo real.",
+      "Implementar function calling para que la IA interactúe con otros módulos.",
+      "Mantener la estética naranja/noche con efectos de audio visuales.",
+    ],
+  },
 ];
 
 export const NAV_ITEMS = [
@@ -136,6 +186,7 @@ export const NAV_ITEMS = [
     key: "dashboard",
     label: "Inicio",
     short: "IN",
+    icon: "layout-dashboard",
     path: "index.html",
     description: "Panel base del sistema",
   },
@@ -193,14 +244,22 @@ export function renderSidebar(target, activeKey) {
       </div>
     </section>
   `;
+
+  // Inicializar iconos de Lucide para el sidebar
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
 }
 
 function renderNavItem(item, activeKey) {
   const isActive = item.key === activeKey;
+  const iconName = item.icon || "circle";
 
   return `
     <a class="nav-item ${isActive ? "nav-item--active" : ""}" href="${toHref(item.path)}">
-      <span class="nav-item__icon" aria-hidden="true">${item.short}</span>
+      <span class="nav-item__icon" aria-hidden="true">
+        <i data-lucide="${iconName}" style="width:20px;height:20px;color:${isActive ? "#ffffff" : "var(--color-accent)"}"></i>
+      </span>
       <span class="nav-item__text">
         <strong>${item.label}</strong>
       </span>
@@ -210,17 +269,18 @@ function renderNavItem(item, activeKey) {
 }
 
 export function initializeThemeToggle(button) {
-  if (!button) return;
-
   const storedTheme = localStorage.getItem(STORAGE_KEY);
   const initialTheme = storedTheme || document.body.dataset.theme || "light";
 
+  // Siempre aplicamos el tema al cargar, haya botón o no
   applyTheme(initialTheme, button);
 
-  button.addEventListener("click", () => {
-    const nextTheme = document.body.dataset.theme === "dark" ? "light" : "dark";
-    applyTheme(nextTheme, button);
-  });
+  if (button) {
+    button.addEventListener("click", () => {
+      const nextTheme = document.body.dataset.theme === "dark" ? "light" : "dark";
+      applyTheme(nextTheme, button);
+    });
+  }
 }
 
 function applyTheme(theme, button) {
@@ -230,7 +290,28 @@ function applyTheme(theme, button) {
 
   if (button) {
     const isDark = theme === "dark";
-    button.textContent = isDark ? "Modo claro" : "Modo oscuro";
+    
+    // Si el botón tiene texto (estilo antiguo), lo limpiamos si es un FAB
+    if (button.classList.contains('theme-fab')) {
+      button.textContent = ""; 
+    } else if (button.textContent && !button.querySelector('i')) {
+      button.textContent = isDark ? "Modo claro" : "Modo oscuro";
+    }
+    
+    // Asegurar que el icono sea el correcto
+    let icon = button.querySelector('[data-lucide]');
+    if (!icon && button.classList.contains('theme-fab')) {
+      button.innerHTML = `<i data-lucide="${isDark ? 'sun' : 'moon'}"></i>`;
+      icon = button.querySelector('[data-lucide]');
+    }
+
+    if (icon) {
+      icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    }
+
     button.setAttribute("aria-pressed", String(isDark));
   }
 }

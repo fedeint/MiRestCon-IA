@@ -5,7 +5,7 @@
 
 .module-stack {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-8);
 }
 
 .placeholder-panel {
@@ -50,7 +50,7 @@
 .module-meta-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-4);
+  gap: var(--space-6);
 }
 
 @media (max-width: 980px) {
