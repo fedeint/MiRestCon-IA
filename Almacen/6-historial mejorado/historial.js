@@ -1,7 +1,7 @@
 // Estado de la aplicación
 let historialCompleto = [];
-let historialFiltrado = []; // Para búsqueda global sobre el módulo seleccionado
-let moduloSeleccionado = ''; 
+let historialFiltrado = [];
+let moduloSeleccionado = '';
 
 // Elementos del DOM
 const contenidoHistorial = document.getElementById('contenidoHistorial');
@@ -9,7 +9,7 @@ const listaHistorial = document.getElementById('listaHistorial');
 const totalEncontrados = document.getElementById('totalEncontrados');
 const montoFiltrado = document.getElementById('montoFiltrado');
 
-const filtroModulo = document.createElement('select'); // Nuevo filtro principal
+const filtroModulo = document.createElement('select');
 filtroModulo.id = 'filtroModulo';
 filtroModulo.innerHTML = `
     <option value="">Seleccione un módulo</option>
@@ -20,14 +20,13 @@ filtroModulo.innerHTML = `
 `;
 
 const busquedaGlobal = document.getElementById('busquedaInsumo');
-busquedaGlobal.placeholder = "Buscador global (insumo, usuario, proveedor, etc)...;"
+busquedaGlobal.placeholder = "Buscador global (insumo, usuario, proveedor, etc)...";
 
 const btnFiltrar = document.getElementById('btnFiltrar');
 const btnLimpiar = document.getElementById('btnLimpiar');
 
 // Inicialización
 function init() {
-    // Insertar filtro de módulo al inicio de los filtros
     const filtrosGrid = document.querySelector('.filtros-grid');
     if (filtrosGrid) {
         const firstGroup = filtrosGrid.querySelector('.form-group');
@@ -38,50 +37,58 @@ function init() {
         filtrosGrid.insertBefore(moduloGroup, firstGroup);
     }
 
-    // Requerimiento 4.2: No mostrar lista inicial
     listaHistorial.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--muted-foreground);">Seleccione un módulo para ver los datos</td></tr>';
-    
+
     configurarEventos();
 }
 
-function cargarDatosModulo(modulo) {
+async function cargarDatosModulo(modulo) {
     moduloSeleccionado = modulo;
+    listaHistorial.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:2rem; color:var(--muted-foreground);">⏳ Cargando...</td></tr>';
+
     let datos = [];
 
-    if (modulo === 'entrada') {
-        const entradas = JSON.parse(localStorage.getItem('inventario_mirest_historial')) || [];
-        datos = entradas.map(e => ({
-            ...e,
-            modulo: 'entrada',
-            movimiento: e.movimiento || 'ENTRADA',
-            monto: e.costoTotalMovimiento || 0,
-            detalle: e.detalle || e.ingredientes || []
-        }));
-    } else if (modulo === 'salida') {
-        const salidas = JSON.parse(localStorage.getItem('inventario_mirest_salidas')) || [];
-        datos = salidas.map(s => ({
-            ...s,
-            modulo: 'salida',
-            movimiento: 'SALIDA',
-            monto: s.costoTotalMovimiento || 0,
-            detalle: s.detalle || s.ingredientes || []
-        }));
-    } else if (modulo === 'proveedores') {
-        // Estructura simplificada para esta prueba
-        datos = []; 
-    } else if (modulo === 'que comprar') {
-        const inventario = JSON.parse(localStorage.getItem('inventario_mirest')) || [];
-        datos = inventario.filter(i => i.stockActual <= i.stockMinimo).map(i => ({
-            id: i.codigo,
-            fecha: new Date().toLocaleDateString("es-PE"),
-            hora: "--:--",
-            tipo: 'sugerencia',
-            movimiento: 'COMPRA',
-            usuario: 'sistema',
-            monto: i.costoTotal || 0,
-            detalle: [{ nombre: i.nombre, cantidad: i.stockMinimo - i.stockActual, costoUnitario: i.costoUnitario, costoTotal: i.costoTotal }],
-            proveedorNombre: i.proveedor
-        }));
+    try {
+        if (modulo === 'entrada') {
+            const entradas = await window.AlmacenDB.getEntradas();
+            datos = entradas.map(e => ({
+                ...e,
+                modulo: 'entrada',
+                movimiento: e.movimiento || 'ENTRADA',
+                monto: e.costo_total_movimiento || e.costoTotalMovimiento || 0,
+                detalle: e.detalle || e.ingredientes || []
+            }));
+        } else if (modulo === 'salida') {
+            const salidas = await window.AlmacenDB.getSalidas();
+            datos = salidas.map(s => ({
+                ...s,
+                modulo: 'salida',
+                movimiento: 'SALIDA',
+                monto: s.costo_total_movimiento || s.costoTotalMovimiento || 0,
+                detalle: s.detalle || s.ingredientes || []
+            }));
+        } else if (modulo === 'proveedores') {
+            datos = [];
+        } else if (modulo === 'que comprar') {
+            const inventario = await window.AlmacenDB.getInsumos();
+            datos = inventario
+                .filter(i => i.stockActual <= i.stockMinimo)
+                .map(i => ({
+                    id: i.codigo,
+                    fecha: new Date().toLocaleDateString("es-PE"),
+                    hora: "--:--",
+                    tipo: 'sugerencia',
+                    movimiento: 'COMPRA',
+                    usuario: 'sistema',
+                    monto: i.costoTotal || 0,
+                    detalle: [{ nombre: i.nombre, cantidad: i.stockMinimo - i.stockActual, costoUnitario: i.costoUnitario, costoTotal: i.costoTotal }],
+                    proveedorNombre: i.proveedor
+                }));
+        }
+    } catch (err) {
+        console.error('[historial] Error al cargar módulo', modulo, err);
+        listaHistorial.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:2rem; color:#ef4444;">❌ Error al cargar datos. Verifique la conexión.</td></tr>';
+        return;
     }
 
     historialCompleto = datos.sort((a, b) => {
@@ -122,7 +129,6 @@ function renderizarHistorial(datos) {
         const row = document.createElement('tr');
         if (item.tipo === 'no-valido') row.style.opacity = '0.5';
 
-        // Detalle de Insumos (Requerimiento 3.1: Campos independientes)
         let detalleHTML = '<div class="detalle-list">';
         const items = item.detalle || [];
         items.forEach(ins => {
@@ -137,7 +143,6 @@ function renderizarHistorial(datos) {
         });
         detalleHTML += '</div>';
 
-        // Adjuntos (Descarga obligatoria Requerimiento 2.2)
         let adjuntosHTML = '';
         if (item.archivos && item.archivos.length > 0) {
             adjuntosHTML += '<div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom: 5px;">';
@@ -196,21 +201,19 @@ function configurarEventos() {
         const busqueda = busquedaGlobal.value.toLowerCase();
 
         historialFiltrado = historialCompleto.filter(item => {
-            // Filtro Fecha
             if (desde || hasta) {
                 const itemDate = parseFechaHora(item.fecha, "00:00");
                 if (desde && itemDate < new Date(desde + "T00:00:00")) return false;
                 if (hasta && itemDate > new Date(hasta + "T23:59:59")) return false;
             }
 
-            // Buscador Global (Cualquier campo - Requerimiento 4.1)
             if (busqueda) {
                 const inDetalle = item.detalle.some(d => d.nombre.toLowerCase().includes(busqueda));
                 const inUsuario = (item.usuario || "").toLowerCase().includes(busqueda);
                 const inProveedor = (item.proveedorNombre || "").toLowerCase().includes(busqueda);
                 const inId = (item.id || "").toLowerCase().includes(busqueda);
                 const inNotas = (item.notas || "").toLowerCase().includes(busqueda);
-                
+
                 if (!inDetalle && !inUsuario && !inProveedor && !inId && !inNotas) return false;
             }
 

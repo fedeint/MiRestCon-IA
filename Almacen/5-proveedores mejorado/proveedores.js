@@ -9,7 +9,7 @@ let proveedores = [];
 let proveedoresFiltrados = [];
 let editandoId = null;
 let categoriasSistema = [];
-let ubicacionTemporal = null; // Para almacenar lat/lng de Google Maps
+let ubicacionTemporal = null;
 
 // --- ELEMENTOS DEL DOM ---
 const listaProveedores = document.getElementById('listaProveedores');
@@ -26,46 +26,43 @@ const inputLatitud = document.getElementById('latitud');
 const inputLongitud = document.getElementById('longitud');
 
 // --- INICIALIZACIÓN ---
-document.addEventListener('DOMContentLoaded', () => {
-    cargarCategoriasDesdeInventario();
-    cargarDatos();
+document.addEventListener('DOMContentLoaded', async () => {
+    await cargarCategoriasDesdeInventario();
+    await cargarDatos();
     configurarEventos();
     renderizarTabla();
     actualizarFiltrosDinamicos();
 });
 
-function cargarCategoriasDesdeInventario() {
-    const inventario = JSON.parse(localStorage.getItem('inventario_mirest')) || [];
-    categoriasSistema = [...new Set(inventario.map(i => i.categoria))].sort();
-}
-
-function cargarDatos() {
-    const datosGuardados = localStorage.getItem('inventario_mirest_proveedores');
-    if (datosGuardados) {
-        proveedores = JSON.parse(datosGuardados);
-    } else {
-        proveedores = [
-            { id: 1, nombre: "Distribuidora El Mercado", ruc: "20123456789", telefono: "987654321", categoria: ["Abarrotes"], ubicacion: { direccion: "Mercado Central, Chimbote", lat: -9.07, lng: -78.59 }, diasCredito: 7, ultimoIngreso: "28/03/2026", estado: "Activo", distanciaKm: 0.5 },
-            { id: 2, nombre: "Carnes Premium SAC", ruc: "20456789123", telefono: "912345678", categoria: ["Carnes"], ubicacion: { direccion: "Av. Pardo 1234, Chimbote", lat: -9.08, lng: -78.58 }, diasCredito: 15, ultimoIngreso: "02/04/2026", estado: "Activo", distanciaKm: 2.1 },
-        ];
-        guardarDatos();
+async function cargarCategoriasDesdeInventario() {
+    try {
+        const inventario = await window.AlmacenDB.getInsumos();
+        categoriasSistema = [...new Set(inventario.map(i => i.categoria))].sort();
+    } catch (err) {
+        console.error('[proveedores] Error al cargar categorías:', err);
+        categoriasSistema = [];
     }
-    proveedoresFiltrados = [...proveedores];
 }
 
-function guardarDatos() {
-    localStorage.setItem('inventario_mirest_proveedores', JSON.stringify(proveedores));
-    window.dispatchEvent(new Event('storage'));
+async function cargarDatos() {
+    try {
+        proveedores = await window.AlmacenDB.getProveedores();
+        proveedoresFiltrados = [...proveedores];
+    } catch (err) {
+        console.error('[proveedores] Error al cargar proveedores:', err);
+        proveedores = [];
+        proveedoresFiltrados = [];
+    }
 }
 
 // --- LÓGICA DE CLASIFICACIÓN ---
 function calcularClasificacion(distanciaKm, diasCredito) {
     if (distanciaKm === null || distanciaKm === undefined) return 0;
-    let scoreDistancia = 5 * (1 - (distanciaKm / 10)); // Normalizado a 10km
+    let scoreDistancia = 5 * (1 - (distanciaKm / 10));
     scoreDistancia = Math.max(0, Math.min(5, scoreDistancia));
-    let scoreCredito = Math.min((diasCredito / 30) * 5, 5); // Normalizado a 30 días
+    let scoreCredito = Math.min((diasCredito / 30) * 5, 5);
     const scoreTotal = scoreDistancia + scoreCredito;
-    
+
     if (scoreTotal <= 2) return 1;
     if (scoreTotal <= 4) return 2;
     if (scoreTotal <= 6) return 3;
@@ -76,29 +73,34 @@ function calcularClasificacion(distanciaKm, diasCredito) {
 // --- RENDERIZADO ---
 function renderizarTabla() {
     listaProveedores.innerHTML = '';
-    
+
     if (proveedoresFiltrados.length === 0) {
         mensajeVacio.style.display = 'block';
     } else {
         mensajeVacio.style.display = 'none';
         proveedoresFiltrados.forEach(p => {
-            const estrellas = calcularClasificacion(p.distanciaKm, p.diasCredito);
+            // Normalizar campos snake_case o camelCase
+            const diasCredito = p.dias_credito !== undefined ? p.dias_credito : (p.diasCredito || 0);
+            const distanciaKm = p.distancia_km !== undefined ? p.distancia_km : (p.distanciaKm || 0);
+            const ultimoIngreso = p.ultimo_ingreso || p.ultimoIngreso || '---';
+
+            const estrellas = calcularClasificacion(distanciaKm, diasCredito);
             const row = document.createElement('tr');
             if (p.estado === 'Inactivo') row.style.opacity = '0.6';
 
             const categoriasStr = Array.isArray(p.categoria) ? p.categoria.join(', ') : (p.categoria || '-');
-            const direccionStr = typeof p.ubicacion === 'object' ? p.ubicacion.direccion : p.ubicacion;
+            const direccionStr = typeof p.ubicacion === 'object' ? p.ubicacion.direccion : (p.ubicacion || '-');
 
             row.innerHTML = `
                 <td>${p.id}</td>
                 <td style="font-weight: 600;">${p.nombre}</td>
-                <td style="font-family: monospace; font-size: 0.8rem;">${p.ruc}</td>
-                <td><a href="tel:${p.telefono}" style="text-decoration:none; color:inherit;">📞 ${p.telefono}</a></td>
+                <td style="font-family: monospace; font-size: 0.8rem;">${p.ruc || '-'}</td>
+                <td><a href="tel:${p.telefono}" style="text-decoration:none; color:inherit;">📞 ${p.telefono || '-'}</a></td>
                 <td style="font-size: 0.75rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${categoriasStr}">${categoriasStr}</td>
                 <td style="font-size: 0.75rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${direccionStr}">${direccionStr}</td>
-                <td style="font-weight: 500;">${p.diasCredito} días</td>
-                <td style="font-size: 0.8rem;">${p.ultimoIngreso || '---'}</td>
-                <td><span class="badge badge-${p.estado.toLowerCase()}">${p.estado}</span></td>
+                <td style="font-weight: 500;">${diasCredito} días</td>
+                <td style="font-size: 0.8rem;">${ultimoIngreso}</td>
+                <td><span class="badge badge-${(p.estado || 'activo').toLowerCase()}">${p.estado || 'Activo'}</span></td>
                 <td>
                     <div class="stars">
                         ${'⭐'.repeat(estrellas)}
@@ -142,10 +144,7 @@ function configurarEventos() {
         formProveedor.reset();
         document.getElementById('proveedorId').value = '';
         renderizarSelectorCategorias();
-        
-        // Reset mapa iframe a ubicación por defecto
         document.getElementById("mapFrame").src = "https://www.google.com/maps?q=Plaza+de+Armas+Lima&output=embed";
-        
         modalProveedor.classList.add('active');
     };
 
@@ -154,12 +153,11 @@ function configurarEventos() {
 
     formProveedor.onsubmit = async (e) => {
         e.preventDefault();
-        
+
         const id = document.getElementById('proveedorId').value;
         const nombre = document.getElementById('nombre').value;
         const direccion = inputDireccion.value;
 
-        // VALIDACIÓN
         if (!direccion.trim()) {
             alert('Debe ingresar una dirección.');
             return;
@@ -172,26 +170,33 @@ function configurarEventos() {
         }
 
         const nuevoProv = {
-            id: id ? parseInt(id) : Date.now(),
             nombre: nombre,
             ruc: document.getElementById('ruc').value,
             telefono: document.getElementById('telefono').value,
             categoria: categoriasSeleccionadas,
-            ubicacion: direccion, // Guardar solo el texto de la dirección
-            diasCredito: parseInt(document.getElementById('diasCredito').value),
-            distanciaKm: 0, 
+            ubicacion: direccion,
+            dias_credito: parseInt(document.getElementById('diasCredito').value) || 0,
+            distancia_km: 0,
             estado: 'Activo',
-            ultimoIngreso: id ? proveedores.find(p => p.id == id).ultimoIngreso : new Date().toLocaleDateString("es-PE")
+            ultimo_ingreso: id ? (proveedores.find(p => p.id == id) || {}).ultimo_ingreso || new Date().toLocaleDateString("es-PE") : new Date().toLocaleDateString("es-PE")
         };
 
-        if (id) {
-            const index = proveedores.findIndex(p => p.id == id);
-            proveedores[index] = nuevoProv;
-        } else {
-            proveedores.push(nuevoProv);
+        try {
+            if (id) {
+                await window.AlmacenDB.updateProveedor(parseInt(id), nuevoProv);
+            } else {
+                nuevoProv.id = Date.now();
+                await window.AlmacenDB.insertProveedor(nuevoProv);
+            }
+            // Recargar desde Supabase
+            proveedores = await window.AlmacenDB.getProveedores();
+            proveedoresFiltrados = [...proveedores];
+        } catch (err) {
+            console.error('[proveedores] Error al guardar proveedor:', err);
+            alert('Error al guardar el proveedor.');
+            return;
         }
 
-        guardarDatos();
         cerrarModal();
         filtrarProveedores();
         actualizarFiltrosDinamicos();
@@ -213,16 +218,16 @@ function renderizarSelectorCategorias(seleccionadas = []) {
         div.style.alignItems = 'center';
         div.style.gap = '0.5rem';
         div.style.fontSize = '0.85rem';
-        
+
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.className = 'cat-checkbox';
         cb.value = cat;
         cb.checked = seleccionadas.includes(cat);
-        
+
         const label = document.createElement('label');
         label.textContent = cat;
-        
+
         div.appendChild(cb);
         div.appendChild(label);
         contenedor.appendChild(div);
@@ -238,7 +243,7 @@ function filtrarProveedores() {
     const categoriaFiltro = filtroCategoria.value;
 
     proveedoresFiltrados = proveedores.filter(p => {
-        const matchNombre = p.nombre.toLowerCase().includes(busqueda) || p.ruc.includes(busqueda);
+        const matchNombre = p.nombre.toLowerCase().includes(busqueda) || (p.ruc || '').includes(busqueda);
         const cats = Array.isArray(p.categoria) ? p.categoria : [p.categoria];
         const matchCategoria = categoriaFiltro === 'Todos' || cats.includes(categoriaFiltro);
         return matchNombre && matchCategoria;
@@ -255,15 +260,13 @@ window.prepararEdicion = (id) => {
     modalTitulo.textContent = 'Editar Proveedor';
     document.getElementById('proveedorId').value = p.id;
     document.getElementById('nombre').value = p.nombre;
-    document.getElementById('ruc').value = p.ruc;
-    document.getElementById('telefono').value = p.telefono;
-    document.getElementById('diasCredito').value = p.diasCredito;
+    document.getElementById('ruc').value = p.ruc || '';
+    document.getElementById('telefono').value = p.telefono || '';
+    document.getElementById('diasCredito').value = p.dias_credito !== undefined ? p.dias_credito : (p.diasCredito || 0);
 
-    const direccion = typeof p.ubicacion === 'object' ? p.ubicacion.direccion : p.ubicacion;
-    
+    const direccion = typeof p.ubicacion === 'object' ? p.ubicacion.direccion : (p.ubicacion || '');
     inputDireccion.value = direccion;
 
-    // Actualizar mapa iframe
     if (direccion) {
         const url = "https://www.google.com/maps?q=" + encodeURIComponent(direccion) + "&output=embed";
         document.getElementById("mapFrame").src = url;
@@ -275,11 +278,15 @@ window.prepararEdicion = (id) => {
     modalProveedor.classList.add('active');
 };
 
-window.cambiarEstado = (id) => {
-    const index = proveedores.findIndex(p => p.id == id);
-    if (index !== -1) {
-        proveedores[index].estado = proveedores[index].estado === 'Activo' ? 'Inactivo' : 'Activo';
-        guardarDatos();
+window.cambiarEstado = async (id) => {
+    const p = proveedores.find(prov => prov.id == id);
+    if (!p) return;
+    const nuevoEstado = p.estado === 'Activo' ? 'Inactivo' : 'Activo';
+    try {
+        await window.AlmacenDB.updateProveedor(id, { estado: nuevoEstado });
+        p.estado = nuevoEstado;
         filtrarProveedores();
+    } catch (err) {
+        console.error('[proveedores] Error al cambiar estado:', err);
     }
 };

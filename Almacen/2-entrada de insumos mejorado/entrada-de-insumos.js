@@ -1,15 +1,7 @@
-// Datos de proveedores (se mantienen como referencia o se podrían cargar desde otro lado)
-const proveedores = [
-    { id: 1, nombre: "Mercado Central" },
-    { id: 2, nombre: "Distribuidora Lima" },
-    { id: 3, nombre: "Proveedor Mayorista SAC" },
-    { id: 4, nombre: "Don Pedro - Pescados" },
-    { id: 5, nombre: "Granja Avícola Norte" },
-];
-
 // Estado de la aplicación
-let inventarioActual = JSON.parse(localStorage.getItem('inventario_mirest')) || [];
-let entradas = []; // Se cargará desde localStorage (inventario_mirest_historial)
+let proveedores = [];
+let inventarioActual = [];
+let entradas = [];
 let archivosAdjuntos = [];
 let mediaRecorder;
 let audioChunks = [];
@@ -45,7 +37,6 @@ if (SpeechRecognition) {
 // Elementos del DOM
 const formEntrada = document.getElementById('formEntrada');
 const selectIngrediente = document.getElementById('ingrediente');
-// const selectProveedor = document.getElementById('proveedor'); // Movido a nivel de insumo
 const inputCantidad = document.getElementById('cantidad');
 const inputCostoUnitario = document.getElementById('costoUnitario');
 const spanCostoTotal = document.getElementById('costoTotal');
@@ -70,22 +61,26 @@ const btnAgregarIngrediente = document.getElementById('btnAgregarIngrediente');
 const contenedorIngredientesExtra = document.getElementById('contenedorIngredientesExtra');
 
 // Inicialización
-function init() {
-    actualizarInventarioLocal();
+async function init() {
     mostrarFechaActual();
     establecerHoraActual();
-    cargarOpciones();
-    cargarEntradasDesdeInventario();
     configurarEventos();
-}
 
-function actualizarInventarioLocal() {
-    inventarioActual = JSON.parse(localStorage.getItem('inventario_mirest')) || [];
-}
-
-function cargarEntradasDesdeInventario() {
-    entradas = JSON.parse(localStorage.getItem('inventario_mirest_historial')) || [];
-    renderizarEntradas();
+    try {
+        const [insumos, provs, ents] = await Promise.all([
+            window.AlmacenDB.getInsumos(),
+            window.AlmacenDB.getProveedores(),
+            window.AlmacenDB.getEntradas()
+        ]);
+        inventarioActual = insumos;
+        proveedores = provs;
+        entradas = ents;
+        cargarOpciones();
+        renderizarEntradas();
+    } catch (err) {
+        console.error('[entrada] Error al cargar datos:', err);
+        listaEntradas.innerHTML = '<tr><td colspan="16" style="text-align:center; padding:2rem; color:#ef4444;">❌ Error al cargar datos. Verifique la conexión.</td></tr>';
+    }
 }
 
 function mostrarFechaActual() {
@@ -140,11 +135,7 @@ function configurarEventos() {
         for (const file of files) {
             if (!archivosAdjuntos.find(f => f.name === file.name)) {
                 const base64 = await toBase64(file);
-                archivosAdjuntos.push({
-                    name: file.name,
-                    type: file.type,
-                    data: base64
-                });
+                archivosAdjuntos.push({ name: file.name, type: file.type, data: base64 });
             }
         }
         actualizarListaArchivos();
@@ -154,19 +145,8 @@ function configurarEventos() {
         e.preventDefault();
         validarYRegistrar();
     });
-
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'inventario_mirest') {
-            actualizarInventarioLocal();
-            cargarOpciones();
-        }
-        if (e.key === 'inventario_mirest_historial') {
-            cargarEntradasDesdeInventario();
-        }
-    });
 }
 
-// Helper para convertir archivo a Base64
 function toBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -195,7 +175,7 @@ function agregarFilaIngredienteExtra() {
     const div = document.createElement('div');
     div.className = 'extra-ingrediente animate-fade-in';
     div.style.marginTop = '1rem';
-    
+
     div.innerHTML = `
         <div class="form-grid">
             <div class="form-group">
@@ -237,7 +217,7 @@ function agregarFilaIngredienteExtra() {
             </div>
         </div>
     `;
-    
+
     const select = div.querySelector('.extra-select');
     const inputCosto = div.querySelector('.extra-costo');
     const inputCodigoExtra = div.querySelector('.extra-codigo');
@@ -245,7 +225,7 @@ function agregarFilaIngredienteExtra() {
     const inputCatExtra = div.querySelector('.extra-categoria');
     const inputUltimoExtra = div.querySelector('.extra-ultimo');
     const selectProvExtra = div.querySelector('.extra-proveedor');
-    
+
     select.addEventListener('change', (e) => {
         const ing = inventarioActual.find(i => i.codigo === e.target.value);
         if (ing) {
@@ -264,7 +244,7 @@ function agregarFilaIngredienteExtra() {
         calcularTotal();
     });
     inputCantExtra.addEventListener('input', calcularTotal);
-    
+
     contenedorIngredientesExtra.appendChild(div);
 }
 
@@ -299,7 +279,7 @@ async function registrarEntrada() {
     const cantPrincipal = parseFloat(inputCantidad.value);
     const unitPrincipal = parseFloat(inputCostoUnitario.value);
     const selectProvPrincipal = document.querySelector('#formEntrada .form-section:nth-child(2) #proveedor');
-    
+
     if (ingPrincipal) {
         listaIngredientes.push({
             codigo: ingPrincipal.codigo,
@@ -340,11 +320,7 @@ async function registrarEntrada() {
     const adjuntosProcesados = await Promise.all(archivosAdjuntos.map(async (file, index) => {
         const extension = file.name.split('.').pop();
         const nuevoNombre = `${nuevoId}_${index + 1}.${extension}`;
-        return {
-            name: nuevoNombre,
-            type: file.type,
-            data: file.data
-        };
+        return { name: nuevoNombre, type: file.type, data: file.data };
     }));
 
     const nuevaEntrada = {
@@ -356,36 +332,50 @@ async function registrarEntrada() {
         notas: inputTextoLibre.value.trim(),
         archivos: adjuntosProcesados,
         tipo: editandoId ? 'corregido' : 'original',
-        referenciaId: editandoId || null,
+        referencia_id: editandoId || null,
         ingredientes: listaIngredientes,
-        costoTotalMovimiento: parseFloat(spanCostoTotal.textContent),
+        costo_total_movimiento: parseFloat(spanCostoTotal.textContent),
         movimiento: 'ENTRADA'
     };
 
-    // ELIMINAR karmila y Mirkala del historial centralizado (Requerimiento 1)
-    let historial = JSON.parse(localStorage.getItem('inventario_mirest_historial')) || [];
-    historial = historial.filter(h => 
-        h.usuario && 
-        !h.usuario.toLowerCase().includes('karmila') && 
-        !h.usuario.toLowerCase().includes('mirkala')
-    );
+    // Insertar entrada en Supabase
+    try {
+        await window.AlmacenDB.insertEntrada(nuevaEntrada);
+    } catch (err) {
+        console.error('[entrada] Error al insertar entrada:', err);
+        alert('Error al guardar el registro. No se actualizó el stock.');
+        return;
+    }
 
-    // ENVIAR SEÑAL AL INVENTARIO (Centralizador)
-    localStorage.setItem('nueva_entrada_insumo', JSON.stringify(nuevaEntrada));
-    
-    // Si es corrección, el inventario procesará el marcado de no-valido
-    
-    window.dispatchEvent(new Event('storage'));
+    // Actualizar stock de cada ingrediente
+    for (const item of listaIngredientes) {
+        const insumoActual = inventarioActual.find(i => i.codigo === item.codigo);
+        if (!insumoActual) continue;
+        const nuevoStock = insumoActual.stockActual + item.cantidad;
+        try {
+            await window.AlmacenDB.updateStockInsumo(item.codigo, nuevoStock);
+            insumoActual.stockActual = nuevoStock;
+        } catch (err) {
+            console.error('[entrada] Error al actualizar stock de', item.codigo, err);
+            alert(`Historial guardado pero stock no actualizado para: ${item.nombre}`);
+        }
+    }
+
+    // Recargar entradas desde Supabase
+    try {
+        entradas = await window.AlmacenDB.getEntradas();
+    } catch (err) {
+        console.error('[entrada] Error al recargar entradas:', err);
+    }
 
     limpiarFormulario();
-    cargarEntradasDesdeInventario();
+    renderizarEntradas();
     alert('Ingreso registrado con éxito.');
 }
 
 function generarSiguienteID() {
     const prefijo = 'ENT';
-    const registros = JSON.parse(localStorage.getItem('inventario_mirest_historial')) || [];
-    const ids = registros.map(r => r.id).filter(id => id && id.startsWith(prefijo));
+    const ids = entradas.map(r => r.id).filter(id => id && id.startsWith(prefijo));
     if (ids.length === 0) return `${prefijo}00001`;
     const numeros = ids.map(id => parseInt(id.replace(prefijo, '')) || 0);
     const siguiente = Math.max(...numeros) + 1;
@@ -413,41 +403,43 @@ function renderizarEntradas() {
     let totalInversion = 0;
 
     entradas.forEach(entrada => {
-        if (entrada.tipo !== 'no-valido') totalInversion += (entrada.costoTotalMovimiento || 0);
+        const costoTotal = entrada.costo_total_movimiento || entrada.costoTotalMovimiento || 0;
+        const referenciaId = entrada.referencia_id || entrada.referenciaId || null;
+        const corregidoPorId = entrada.corregido_por_id || entrada.corregidoPorId || null;
+
+        if (entrada.tipo !== 'no-valido') totalInversion += costoTotal;
 
         const row = document.createElement('tr');
         if (entrada.tipo === 'no-valido') row.classList.add('row-no-valido');
-        
+
         const badgeClass = `badge-${entrada.tipo}`;
-        const refInfo = entrada.referenciaId ? `<br><small>Ref: ${entrada.referenciaId}</small>` : '';
-        const corrInfo = entrada.corregidoPorId ? `<br><small>Corr: ${entrada.corregidoPorId}</small>` : '';
+        const refInfo = referenciaId ? `<br><small>Ref: ${referenciaId}</small>` : '';
+        const corrInfo = corregidoPorId ? `<br><small>Corr: ${corregidoPorId}</small>` : '';
 
-        // Detalle de insumos
-    let ingredientesHTML = '';
-    let cantidadesHTML = '';
-    let costosUnitHTML = '';
-    let costosTotalHTML = '';
-    let codigosHTML = '';
-    let categoriasHTML = '';
-    let estadosHTML = '';
-    let ultimosHTML = '';
-    let proveedoresHTML = '';
+        let ingredientesHTML = '';
+        let cantidadesHTML = '';
+        let costosUnitHTML = '';
+        let costosTotalHTML = '';
+        let codigosHTML = '';
+        let categoriasHTML = '';
+        let estadosHTML = '';
+        let ultimosHTML = '';
+        let proveedoresHTML = '';
 
-    const items = entrada.ingredientes || [entrada];
-    items.forEach(ing => {
-        const nombre = ing.nombre || ing.ingredienteNombre;
-        codigosHTML += `<div>${ing.codigo}</div>`;
-        ingredientesHTML += `<div style="font-weight:600;">${nombre}</div>`;
-        categoriasHTML += `<div>${ing.categoria}</div>`;
-        costosUnitHTML += `<div>${parseFloat(ing.costoUnitario || 0).toFixed(2)}</div>`;
-        ultimosHTML += `<div>${ing.ultimoIngreso || "-"}</div>`;
-        estadosHTML += `<div><span class="badge-estado badge-${ing.estado || 'ok'}">${ing.estado || 'ok'}</span></div>`;
-        costosTotalHTML += `<div style="font-weight:700;">${parseFloat(ing.costoTotal || 0).toFixed(2)}</div>`;
-        cantidadesHTML += `<div>${ing.cantidad}</div>`;
-        proveedoresHTML += `<div>${ing.proveedor || "-"}</div>`;
-    });
+        const items = entrada.ingredientes || [entrada];
+        items.forEach(ing => {
+            const nombre = ing.nombre || ing.ingredienteNombre;
+            codigosHTML += `<div>${ing.codigo}</div>`;
+            ingredientesHTML += `<div style="font-weight:600;">${nombre}</div>`;
+            categoriasHTML += `<div>${ing.categoria}</div>`;
+            costosUnitHTML += `<div>${parseFloat(ing.costoUnitario || 0).toFixed(2)}</div>`;
+            ultimosHTML += `<div>${ing.ultimoIngreso || "-"}</div>`;
+            estadosHTML += `<div><span class="badge-estado badge-${ing.estado || 'ok'}">${ing.estado || 'ok'}</span></div>`;
+            costosTotalHTML += `<div style="font-weight:700;">${parseFloat(ing.costoTotal || 0).toFixed(2)}</div>`;
+            cantidadesHTML += `<div>${ing.cantidad}</div>`;
+            proveedoresHTML += `<div>${ing.proveedor || "-"}</div>`;
+        });
 
-        // Multimedia y Notas (Requerimiento 2.2: Descarga obligatoria)
         let adjuntosHTML = '';
         if (entrada.archivos && entrada.archivos.length > 0) {
             adjuntosHTML += '<div class="adjuntos-container" style="display:flex; flex-wrap:wrap; gap:8px;">';
@@ -456,7 +448,6 @@ function renderizarEntradas() {
             });
             adjuntosHTML += '</div>';
         }
-        
         if (entrada.notas) adjuntosHTML += `<div style="font-size: 0.7rem; color: var(--muted-foreground); font-style: italic; margin-top:4px;">" ${entrada.notas} "</div>`;
 
         row.innerHTML = `
@@ -496,14 +487,11 @@ window.prepararModificacion = function(id) {
     const items = entrada.ingredientes || [entrada];
     const principal = items[0];
 
-    // Datos del Registro
     inputHora.value = entrada.hora;
-    selectProveedor.value = entrada.proveedorNombre;
     inputComprobante.value = entrada.comprobante !== '-' ? entrada.comprobante : '';
     inputUsuario.value = entrada.usuario;
     inputTextoLibre.value = entrada.notas || '';
 
-    // Insumo Principal
     selectIngrediente.value = principal.codigo;
     inputCantidad.value = principal.cantidad;
     inputCodigo.value = principal.codigo;
@@ -511,7 +499,6 @@ window.prepararModificacion = function(id) {
     inputCostoUnitario.value = principal.costoUnitario.toFixed(2);
     inputUltimoIngreso.value = principal.ultimoIngreso;
 
-    // Insumos Extras
     contenedorIngredientesExtra.innerHTML = '';
     for (let i = 1; i < items.length; i++) {
         agregarFilaIngredienteExtra();
@@ -528,7 +515,7 @@ window.prepararModificacion = function(id) {
     document.getElementById('formEntrada').scrollIntoView({ behavior: 'smooth' });
 };
 
-// Lógica de Audio (simplificada para el ejemplo)
+// Lógica de Audio
 async function toggleGrabacion() {
     if (!mediaRecorder || mediaRecorder.state === 'inactive') {
         try {

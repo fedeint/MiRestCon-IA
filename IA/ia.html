@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f07c2a" />
-    <title>MiRest con IA | DallIA</title>
+    <title>MiRest con IA | DallA</title>
     <script>
       document.documentElement.classList.add("js");
       document.documentElement.dataset.theme = localStorage.getItem("mirest-ui-theme") || "light";
@@ -22,22 +22,21 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-      /* ── Variables del módulo IA ── */
       :root {
-        --ia-accent:     var(--color-accent);
-        --ia-accent2:    var(--color-accent-dark);
-        --ia-accent-dim: var(--color-accent-soft);
-        --ia-radius:     14px;
-        --ia-font-d:     var(--font-display);
-        --ia-font-b:     var(--font-body);
+        --ia-accent:     var(--color-accent, #f07c2a);
+        --ia-accent2:    var(--color-accent-dark, #d96a1a);
+        --ia-accent-dim: rgba(240,124,42,.10);
+        --ia-radius:     16px;
+        --ia-font-d:     var(--font-display, 'Space Grotesk', sans-serif);
+        --ia-font-b:     var(--font-body, 'Inter', sans-serif);
       }
 
-      /* ── Layout del chat ── */
+      /* ── Wrapper principal ── */
       .ia-chat-wrapper {
         display: flex;
         flex-direction: column;
-        height: calc(100vh - 120px);
-        min-height: 400px;
+        height: calc(100vh - 148px);
+        min-height: 440px;
         background: var(--color-surface);
         border: 1px solid var(--color-border);
         border-radius: var(--ia-radius);
@@ -45,27 +44,154 @@
         box-shadow: var(--shadow-card);
       }
 
+      /* ── Header con mascota ── */
+      .ia-chat-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--color-border);
+        background: linear-gradient(135deg,
+          rgba(240,124,42,.10) 0%,
+          rgba(240,124,42,.03) 50%,
+          transparent 100%);
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Glow decorativo */
+      .ia-chat-header::before {
+        content: '';
+        position: absolute;
+        top: -30px; left: -30px;
+        width: 120px; height: 120px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(240,124,42,.18) 0%, transparent 70%);
+        pointer-events: none;
+      }
+
+      .ia-mascot-wrap {
+        position: relative;
+        flex-shrink: 0;
+        z-index: 1;
+      }
+
+      .ia-mascot-img {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2.5px solid var(--ia-accent);
+        box-shadow: 0 0 0 4px var(--ia-accent-dim), 0 4px 16px rgba(240,124,42,.2);
+        transition: transform .2s;
+      }
+
+      .ia-mascot-img:hover { transform: scale(1.05); }
+
+      .ia-mascot-status {
+        position: absolute;
+        bottom: 3px; right: 3px;
+        width: 13px; height: 13px;
+        border-radius: 50%;
+        background: #22c55e;
+        border: 2.5px solid var(--color-surface);
+        box-shadow: 0 0 6px rgba(34,197,94,.5);
+      }
+
+      .ia-chat-header-info {
+        flex: 1;
+        min-width: 0;
+        z-index: 1;
+      }
+
+      .ia-chat-header-name {
+        font-family: var(--ia-font-d);
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--color-text);
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .ia-badge-rag {
+        font-size: 9px;
+        font-weight: 800;
+        padding: 2px 7px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, var(--ia-accent), var(--ia-accent2));
+        color: #fff;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+      }
+
+      .ia-chat-header-sub {
+        font-size: 12px;
+        color: var(--color-text-muted);
+        margin-top: 3px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .ia-header-dot {
+        width: 5px; height: 5px;
+        border-radius: 50%;
+        background: #22c55e;
+        display: inline-block;
+      }
+
+      .ia-header-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        z-index: 1;
+      }
+
+      .ia-btn-icon {
+        width: 34px; height: 34px;
+        border-radius: 9px;
+        border: 1px solid var(--color-border);
+        background: var(--color-bg);
+        color: var(--color-text-muted);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        transition: background .12s, border-color .12s, color .12s;
+      }
+
+      .ia-btn-icon:hover {
+        background: var(--ia-accent-dim);
+        border-color: var(--ia-accent);
+        color: var(--ia-accent);
+      }
+
       /* ── Área de mensajes ── */
       #chat-messages {
         flex: 1;
         overflow-y: auto;
-        padding: 24px 20px 16px;
+        padding: 20px 18px 12px;
         display: flex;
         flex-direction: column;
-        gap: 14px;
+        gap: 18px;
         scroll-behavior: smooth;
       }
 
-      #chat-messages::-webkit-scrollbar { width: 5px; }
+      #chat-messages::-webkit-scrollbar { width: 4px; }
       #chat-messages::-webkit-scrollbar-track { background: transparent; }
-      #chat-messages::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
+      #chat-messages::-webkit-scrollbar-thumb {
+        background: var(--color-border);
+        border-radius: 4px;
+      }
 
       /* ── Mensajes ── */
       .message {
         display: flex;
-        flex-direction: column;
-        max-width: 78%;
-        animation: ia-msg-in .25s ease;
+        gap: 10px;
+        max-width: 80%;
+        animation: ia-msg-in .22s ease;
       }
 
       @keyframes ia-msg-in {
@@ -75,19 +201,62 @@
 
       .message--user {
         align-self: flex-end;
-        align-items: flex-end;
+        flex-direction: row-reverse;
       }
 
       .message--assistant {
         align-self: flex-start;
-        align-items: flex-start;
       }
 
+      /* Avatar en mensajes */
+      .message__avatar {
+        width: 34px; height: 34px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 2px;
+        overflow: hidden;
+      }
+
+      .message--assistant .message__avatar {
+        border: 1.5px solid var(--ia-accent);
+        box-shadow: 0 0 0 3px var(--ia-accent-dim);
+      }
+
+      .message--user .message__avatar {
+        background: linear-gradient(135deg, var(--ia-accent), var(--ia-accent2));
+        display: grid;
+        place-items: center;
+        font-size: 13px;
+        font-weight: 800;
+        color: #fff;
+        font-family: var(--ia-font-d);
+      }
+
+      .message__avatar img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+      }
+
+      .message__body {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .message__sender {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--color-text-muted);
+        padding: 0 4px;
+      }
+
+      .message--user .message__sender { text-align: right; }
+
       .message__bubble {
-        padding: 12px 16px;
+        padding: 11px 15px;
         border-radius: 16px;
         font-size: 14px;
-        line-height: 1.6;
+        line-height: 1.65;
         word-break: break-word;
       }
 
@@ -95,6 +264,7 @@
         background: linear-gradient(135deg, var(--ia-accent), var(--ia-accent2));
         color: #fff;
         border-bottom-right-radius: 4px;
+        box-shadow: 0 3px 14px rgba(240,124,42,.22);
       }
 
       .message--assistant .message__bubble {
@@ -104,48 +274,46 @@
         border-bottom-left-radius: 4px;
       }
 
-      .message__bubble ul {
-        margin: 6px 0 0 0;
-        padding-left: 18px;
-      }
-
+      .message__bubble ul { margin: 6px 0 0; padding-left: 18px; }
       .message__bubble li { margin-bottom: 4px; }
-
-      .message__meta {
-        font-size: 11px;
-        color: var(--color-text-muted);
-        margin-top: 4px;
-        padding: 0 4px;
-      }
-
-      /* ── Mensaje de advertencia ── */
-      .message--warning .message__bubble {
-        background: rgba(240, 124, 42, 0.12);
-        border: 1px solid rgba(240, 124, 42, 0.35);
-        color: var(--color-text);
-        font-size: 13px;
-      }
+      .message__bubble strong { color: inherit; }
 
       /* ── Typing indicator ── */
       #typing-indicator {
         display: none;
         align-self: flex-start;
-        padding: 12px 18px;
+        align-items: center;
+        gap: 10px;
+        padding: 0 18px 14px;
+      }
+
+      #typing-indicator .ti-avatar {
+        width: 34px; height: 34px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 1.5px solid var(--ia-accent);
+        box-shadow: 0 0 0 3px var(--ia-accent-dim);
+        flex-shrink: 0;
+      }
+
+      #typing-indicator .ti-avatar img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+      }
+
+      #typing-indicator .ti-dots {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        padding: 11px 15px;
         background: var(--color-bg);
         border: 1px solid var(--color-border);
         border-radius: 16px;
         border-bottom-left-radius: 4px;
-        gap: 5px;
-        align-items: center;
-      }
-
-      #typing-indicator.visible {
-        display: flex;
       }
 
       .typing-dot {
-        width: 7px;
-        height: 7px;
+        width: 7px; height: 7px;
         border-radius: 50%;
         background: var(--ia-accent);
         animation: ia-dot-bounce 1.2s infinite ease-in-out;
@@ -156,18 +324,19 @@
       .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
       @keyframes ia-dot-bounce {
-        0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
         30%            { transform: translateY(-6px); opacity: 1; }
       }
 
-      /* ── Área de input ── */
+      /* ── Input area ── */
       .ia-input-area {
         border-top: 1px solid var(--color-border);
-        padding: 14px 16px;
+        padding: 12px 16px 14px;
         background: var(--color-surface);
         display: flex;
         flex-direction: column;
         gap: 8px;
+        flex-shrink: 0;
       }
 
       .ia-input-row {
@@ -179,15 +348,15 @@
       #chat-input {
         flex: 1;
         resize: none;
-        border: 1px solid var(--color-border);
-        border-radius: 10px;
-        padding: 10px 14px;
+        border: 1.5px solid var(--color-border);
+        border-radius: 12px;
+        padding: 11px 14px;
         font-size: 14px;
         font-family: var(--ia-font-b);
         background: var(--color-bg);
         color: var(--color-text);
         line-height: 1.5;
-        min-height: 44px;
+        min-height: 46px;
         max-height: 120px;
         overflow-y: auto;
         transition: border-color .15s, box-shadow .15s;
@@ -196,21 +365,15 @@
       #chat-input:focus {
         outline: none;
         border-color: var(--ia-accent);
-        box-shadow: 0 0 0 3px rgba(240, 124, 42, .15);
+        box-shadow: 0 0 0 3px rgba(240,124,42,.12);
       }
 
-      #chat-input:disabled {
-        opacity: .5;
-        cursor: not-allowed;
-      }
-
+      #chat-input:disabled { opacity: .5; cursor: not-allowed; }
       #chat-input::placeholder { color: var(--color-text-muted); }
 
-      /* ── Botones de acción ── */
       #btn-send {
-        width: 44px;
-        height: 44px;
-        border-radius: 10px;
+        width: 46px; height: 46px;
+        border-radius: 12px;
         border: none;
         background: linear-gradient(135deg, var(--ia-accent), var(--ia-accent2));
         color: #fff;
@@ -218,14 +381,14 @@
         display: grid;
         place-items: center;
         flex-shrink: 0;
-        box-shadow: 0 2px 10px rgba(240, 124, 42, .35);
+        box-shadow: 0 3px 14px rgba(240,124,42,.35);
         transition: transform .12s, box-shadow .12s, filter .12s;
       }
 
       #btn-send:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 5px 18px rgba(240, 124, 42, .5);
-        filter: brightness(1.1);
+        box-shadow: 0 6px 22px rgba(240,124,42,.5);
+        filter: brightness(1.08);
       }
 
       #btn-send:active:not(:disabled) { transform: translateY(0); }
@@ -237,7 +400,6 @@
         box-shadow: none;
       }
 
-      /* ── Fila inferior del input ── */
       .ia-input-footer {
         display: flex;
         align-items: center;
@@ -245,57 +407,43 @@
         gap: 10px;
       }
 
+      .ia-input-hint {
+        font-size: 11px;
+        color: var(--color-text-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .ia-input-hint kbd {
+        font-size: 10px;
+        padding: 1px 5px;
+        border-radius: 4px;
+        border: 1px solid var(--color-border);
+        background: var(--color-surface-muted);
+        color: var(--color-text-muted);
+        font-family: monospace;
+      }
+
       #char-counter {
-        font-size: 12px;
+        font-size: 11px;
         color: var(--color-text-muted);
         font-variant-numeric: tabular-nums;
       }
 
-      #char-counter.warning { color: #f59e0b; }
-      #char-counter.danger  { color: #ef4444; }
-
-      #btn-new-chat {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 14px;
-        border-radius: 8px;
-        border: 1px solid var(--color-border);
-        background: var(--color-bg);
-        color: var(--color-text-muted);
-        font-size: 12px;
-        font-weight: 600;
-        font-family: var(--ia-font-b);
-        cursor: pointer;
-        transition: background .12s, border-color .12s, color .12s;
-      }
-
-      #btn-new-chat:hover {
-        background: var(--color-surface-muted);
-        border-color: var(--ia-accent);
-        color: var(--ia-accent);
-      }
-
       /* ── Responsive ── */
       @media (max-width: 768px) {
-        .ia-chat-wrapper {
-          height: calc(100vh - 90px);
-          border-radius: 10px;
-        }
-
-        #chat-messages {
-          padding: 16px 14px 12px;
-          gap: 10px;
-        }
-
-        .message { max-width: 90%; }
-
-        .ia-input-area { padding: 10px 12px; }
+        .ia-chat-wrapper { height: calc(100vh - 110px); border-radius: 12px; }
+        #chat-messages { padding: 14px 12px 10px; gap: 14px; }
+        .message { max-width: 92%; }
+        .ia-input-area { padding: 10px 12px 12px; }
+        .ia-chat-header { padding: 12px 14px; }
+        .ia-mascot-img { width: 44px; height: 44px; }
+        .ia-input-hint { display: none; }
       }
 
       @media (max-width: 480px) {
         .message { max-width: 96%; }
-
         .ia-input-footer { flex-wrap: wrap; }
       }
     </style>
@@ -316,7 +464,7 @@
         <nav id="sidebarNav" class="sidebar__nav" aria-label="Navegación principal"></nav>
         <div class="sidebar__footer card card--sidebar">
           <span class="sidebar__footer-label">Módulo activo</span>
-          <strong>DallIA</strong>
+          <strong>DallA</strong>
           <p>Asistente IA con RAG para MiRest.</p>
         </div>
       </aside>
@@ -334,12 +482,18 @@
             </button>
             <div class="topbar__copy">
               <span class="eyebrow" id="pageEyebrow">Inteligencia Artificial</span>
-              <h1 id="pageTitle">DallIA</h1>
-              <p id="pageSubtitle">Asistente IA con acceso a la base de conocimiento del restaurante.</p>
+              <h1 id="pageTitle">DallA</h1>
+              <p id="pageSubtitle">Tu asistente IA con conocimiento del restaurante.</p>
             </div>
           </div>
           <div class="topbar__actions">
-            <div class="avatar" aria-label="Inteligencia Artificial">IA</div>
+            <button onclick="clearGroqKey(); location.reload();" title="Cambiar API Key"
+              style="display:inline-flex; align-items:center; gap:6px; background:none; border:1px solid var(--color-border); border-radius:8px; padding:6px 12px; color:var(--color-text-muted); font-size:12px; cursor:pointer; transition:all .12s; font-family:var(--font-body);">
+              🔑 API Key
+            </button>
+            <div class="avatar" style="overflow:hidden; padding:0; border:2px solid var(--color-accent);">
+              <img src="./DalIA.png" alt="DallA" style="width:100%; height:100%; object-fit:cover;" />
+            </div>
           </div>
         </header>
 
@@ -348,19 +502,48 @@
           <nav class="breadcrumb" aria-label="Breadcrumb">
             <a href="../index.html" style="color: inherit; text-decoration: none;">Dashboard</a>
             <span>/</span>
-            <strong>DallIA</strong>
+            <strong>DallA</strong>
           </nav>
 
           <!-- Chat container -->
           <div class="ia-chat-wrapper">
+
+            <!-- Header del chat -->
+            <div class="ia-chat-header">
+              <div class="ia-mascot-wrap">
+                <img src="./DalIA.png" alt="DallA" class="ia-mascot-img" />
+                <span class="ia-mascot-status" title="En línea"></span>
+              </div>
+              <div class="ia-chat-header-info">
+                <div class="ia-chat-header-name">
+                  DallA
+                  <span class="ia-badge-rag">RAG</span>
+                </div>
+                <div class="ia-chat-header-sub">
+                  <span class="ia-header-dot"></span>
+                  En línea · Asistente IA de MiRest
+                </div>
+              </div>
+              <div class="ia-header-actions">
+                <button class="ia-btn-icon" id="btn-new-chat" type="button" title="Nueva conversación">
+                  <i data-lucide="plus" style="width:16px; height:16px;"></i>
+                </button>
+              </div>
+            </div>
+
             <!-- Messages area -->
             <div id="chat-messages" role="log" aria-live="polite" aria-label="Historial de conversación"></div>
 
             <!-- Typing indicator -->
-            <div id="typing-indicator" aria-label="DallIA está escribiendo" aria-hidden="true">
-              <span class="typing-dot"></span>
-              <span class="typing-dot"></span>
-              <span class="typing-dot"></span>
+            <div id="typing-indicator" aria-label="DallA está escribiendo" aria-hidden="true">
+              <div class="ti-avatar">
+                <img src="./DalIA.png" alt="DallA" />
+              </div>
+              <div class="ti-dots">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+              </div>
             </div>
 
             <!-- Input area -->
@@ -369,26 +552,25 @@
                 <textarea
                   id="chat-input"
                   maxlength="1000"
-                  placeholder="Escribe tu pregunta a DallIA..."
+                  placeholder="Pregúntale algo a DallA..."
                   rows="1"
-                  aria-label="Mensaje para DallIA"
+                  aria-label="Mensaje para DallA"
                 ></textarea>
                 <button id="btn-send" type="button" aria-label="Enviar mensaje">
                   <i data-lucide="send" style="width: 18px; height: 18px;"></i>
                 </button>
               </div>
               <div class="ia-input-footer">
-                <button id="btn-new-chat" type="button">
-                  <i data-lucide="plus-circle" style="width: 13px; height: 13px;"></i>
-                  Nueva conversación
-                </button>
+                <span class="ia-input-hint">
+                  <kbd>Enter</kbd> enviar &nbsp;·&nbsp; <kbd>Shift+Enter</kbd> nueva línea
+                </span>
                 <span id="char-counter" aria-live="polite">1000</span>
               </div>
             </div>
           </div>
 
           <footer class="page-footer">
-            MiRest con IA · <span id="currentYear">2026</span> · Módulo DallIA.
+            MiRest con IA · <span id="currentYear">2026</span> · DallA — Asistente IA.
           </footer>
         </main>
       </div>
@@ -401,7 +583,6 @@
 
     <!-- Shell scripts -->
     <script type="module" src="../scripts/app.js"></script>
-    <!-- IA module scripts (regular, not module — ia.js uses global scope) -->
     <script src="./config.js"></script>
     <script src="./ia.js"></script>
   </body>

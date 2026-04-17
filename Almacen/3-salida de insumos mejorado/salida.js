@@ -1,12 +1,7 @@
-// Datos de proveedores (Cargados desde el módulo de proveedores)
-let proveedores = JSON.parse(localStorage.getItem('inventario_mirest_proveedores')) || [
-    { id: 1, nombre: "Distribuidora El Mercado" },
-    { id: 2, nombre: "Carnes Premium SAC" }
-];
-
 // Estado de la aplicación
-let inventarioActual = JSON.parse(localStorage.getItem('inventario_mirest')) || [];
-let salidas = []; // Se cargará desde localStorage (inventario_mirest_salidas)
+let proveedores = [];
+let inventarioActual = [];
+let salidas = [];
 let archivosAdjuntos = [];
 let mediaRecorder;
 let audioChunks = [];
@@ -75,26 +70,27 @@ const btnAgregarIngrediente = document.getElementById('btnAgregarIngrediente');
 const contenedorIngredientesExtra = document.getElementById('contenedorIngredientesExtra');
 
 // Inicialización
-function init() {
-    actualizarEstadoLocal();
+async function init() {
     mostrarFechaActual();
     establecerHoraActual();
-    cargarOpciones();
-    cargarSalidas();
     configurarEventos();
     actualizarUIBloqueAutomatico();
-}
 
-function actualizarEstadoLocal() {
-    inventarioActual = JSON.parse(localStorage.getItem('inventario_mirest')) || [];
-    proveedores = JSON.parse(localStorage.getItem('inventario_mirest_proveedores')) || [];
-    cajaAbierta = localStorage.getItem('mirest_caja_abierta') === 'true';
-    platosHoy = parseInt(localStorage.getItem('mirest_platos_hoy')) || 0;
-}
-
-function cargarSalidas() {
-    salidas = JSON.parse(localStorage.getItem('inventario_mirest_salidas')) || [];
-    renderizarSalidas();
+    try {
+        const [insumos, provs, sals] = await Promise.all([
+            window.AlmacenDB.getInsumos(),
+            window.AlmacenDB.getProveedores(),
+            window.AlmacenDB.getSalidas()
+        ]);
+        inventarioActual = insumos;
+        proveedores = provs;
+        salidas = sals;
+        cargarOpciones();
+        renderizarSalidas();
+    } catch (err) {
+        console.error('[salida] Error al cargar datos:', err);
+        listaSalidas.innerHTML = '<tr><td colspan="16" style="text-align:center; padding:2rem; color:#ef4444;">❌ Error al cargar datos. Verifique la conexión.</td></tr>';
+    }
 }
 
 function mostrarFechaActual() {
@@ -142,11 +138,7 @@ function configurarEventos() {
         for (const file of files) {
             if (!archivosAdjuntos.find(f => f.name === file.name)) {
                 const base64 = await toBase64(file);
-                archivosAdjuntos.push({
-                    name: file.name,
-                    type: file.type,
-                    data: base64
-                });
+                archivosAdjuntos.push({ name: file.name, type: file.type, data: base64 });
             }
         }
         actualizarListaArchivos();
@@ -155,18 +147,6 @@ function configurarEventos() {
     formSalida.addEventListener('submit', (e) => {
         e.preventDefault();
         validarYRegistrar();
-    });
-
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'inventario_mirest' || e.key === 'inventario_mirest_proveedores') {
-            actualizarEstadoLocal();
-            cargarOpciones();
-        }
-        if (e.key === 'inventario_mirest_salidas') cargarSalidas();
-        if (e.key === 'mirest_caja_abierta' || e.key === 'mirest_platos_hoy') {
-            actualizarEstadoLocal();
-            actualizarUIBloqueAutomatico();
-        }
     });
 }
 
@@ -196,7 +176,7 @@ function agregarFilaIngredienteExtra() {
     const div = document.createElement('div');
     div.className = 'extra-ingrediente animate-fade-in';
     div.style.marginTop = '1rem';
-    
+
     div.innerHTML = `
         <div class="form-grid">
             <div class="form-group">
@@ -238,7 +218,7 @@ function agregarFilaIngredienteExtra() {
             </div>
         </div>
     `;
-    
+
     const select = div.querySelector('.extra-select');
     const inputCosto = div.querySelector('.extra-costo');
     const inputCodigoExtra = div.querySelector('.extra-codigo');
@@ -246,7 +226,7 @@ function agregarFilaIngredienteExtra() {
     const inputCatExtra = div.querySelector('.extra-categoria');
     const selectProvExtra = div.querySelector('.extra-proveedor');
     const inputTotalExtra = div.querySelector('.extra-total-ind');
-    
+
     select.addEventListener('change', (e) => {
         const ing = inventarioActual.find(i => i.codigo === e.target.value);
         if (ing) {
@@ -262,7 +242,7 @@ function agregarFilaIngredienteExtra() {
         }
         calcularTotal();
     });
-    
+
     const actualizarFilaTotal = () => {
         const cant = parseFloat(inputCantExtra.value) || 0;
         const unit = parseFloat(inputCosto.value) || 0;
@@ -271,27 +251,22 @@ function agregarFilaIngredienteExtra() {
     };
 
     inputCantExtra.addEventListener('input', actualizarFilaTotal);
-    
+
     contenedorIngredientesExtra.appendChild(div);
 }
 
 function calcularTotal() {
     let total = 0;
-    
-    // Principal
+
     const cantPrincipal = parseFloat(inputCantidad.value) || 0;
     const unitPrincipal = parseFloat(inputCostoUnitario.value) || 0;
     const totalPrincipal = cantPrincipal * unitPrincipal;
-    
-    // Actualizar campo costo total individual del principal si existiera en el DOM
+
     const inputTotalPrincipal = document.getElementById('costoTotalIndividualPrincipal');
-    if (inputTotalPrincipal) {
-        inputTotalPrincipal.value = totalPrincipal.toFixed(2);
-    }
-    
+    if (inputTotalPrincipal) inputTotalPrincipal.value = totalPrincipal.toFixed(2);
+
     total += totalPrincipal;
 
-    // Extras
     document.querySelectorAll('.extra-ingrediente').forEach(fila => {
         const cant = parseFloat(fila.querySelector('.extra-cantidad').value) || 0;
         const unit = parseFloat(fila.querySelector('.extra-costo').value) || 0;
@@ -320,13 +295,9 @@ function validarYRegistrar() {
     if (isNaN(cantPrincipal) || cantPrincipal <= 0) { alert('La cantidad debe ser mayor a cero'); return; }
     if (!proveedor) { alert('Debe seleccionar un proveedor'); return; }
 
-    // El comprobante es opcional en salida (Regla 6), no se valida aquí.
-
-    // Verificar stock principal
     const ingPrincipal = inventarioActual.find(i => i.codigo === codigoPrincipal);
     if (cantPrincipal > ingPrincipal.stockActual) { alert(`Stock insuficiente para ${ingPrincipal.nombre}`); return; }
 
-    // Verificar stock extras
     let stockError = false;
     document.querySelectorAll('.extra-ingrediente').forEach(fila => {
         const cod = fila.querySelector('.extra-select').value;
@@ -342,24 +313,10 @@ function validarYRegistrar() {
     registrarSalida();
 }
 
-function registrarSalida() {
+async function registrarSalida() {
     const nuevoId = generarSiguienteID();
-    let historialSalidas = JSON.parse(localStorage.getItem('inventario_mirest_salidas')) || [];
-    
-    // Restaurar stock si es una corrección
-    if (editandoId) {
-        const registroAnterior = historialSalidas.find(s => s.id === editandoId);
-        if (registroAnterior) {
-            registroAnterior.ingredientes.forEach(ingPrev => {
-                const itemInv = inventarioActual.find(i => i.codigo === ingPrev.codigo);
-                if (itemInv) itemInv.stockActual += ingPrev.cantidad;
-            });
-            registroAnterior.tipo = 'no-valido';
-            registroAnterior.corregidoPorId = nuevoId;
-        }
-    }
-
     const listaIngredientes = [];
+
     // Principal
     const ingPrincipal = inventarioActual.find(i => i.codigo === selectIngrediente.value);
     const cantPrincipal = parseFloat(inputCantidad.value);
@@ -397,15 +354,10 @@ function registrarSalida() {
         }
     });
 
-    // Procesar adjuntos con nombres únicos (Requerimiento 2.2 unificado)
     const adjuntosProcesados = archivosAdjuntos.map((file, index) => {
         const extension = file.name.split('.').pop();
         const nuevoNombre = `${nuevoId}_${index + 1}.${extension}`;
-        return {
-            name: nuevoNombre,
-            type: file.type,
-            data: file.data // Ya es Base64
-        };
+        return { name: nuevoNombre, type: file.type, data: file.data };
     });
 
     const nuevaSalida = {
@@ -417,9 +369,9 @@ function registrarSalida() {
         usuario: inputUsuario.value,
         fecha: new Date().toLocaleDateString("es-PE"),
         tipo: editandoId ? 'corregido' : 'original',
-        referenciaId: editandoId || null,
+        referencia_id: editandoId || null,
         ingredientes: listaIngredientes,
-        costoTotalMovimiento: parseFloat(spanCostoTotal.textContent),
+        costo_total_movimiento: parseFloat(spanCostoTotal.textContent),
         notas: inputTextoLibre.value.trim(),
         archivos: adjuntosProcesados,
         movimiento: 'SALIDA',
@@ -432,28 +384,44 @@ function registrarSalida() {
         }))
     };
 
-    // Descontar Stock
-    listaIngredientes.forEach(item => {
-        const invItem = inventarioActual.find(i => i.codigo === item.codigo);
-        if (invItem) invItem.stockActual -= item.cantidad;
-    });
+    // Insertar salida en Supabase
+    try {
+        await window.AlmacenDB.insertSalida(nuevaSalida);
+    } catch (err) {
+        console.error('[salida] Error al insertar salida:', err);
+        alert('Error al guardar el registro. No se actualizó el stock.');
+        return;
+    }
 
-    // Guardar
-    localStorage.setItem('inventario_mirest', JSON.stringify(inventarioActual));
-    historialSalidas.unshift(nuevaSalida);
-    localStorage.setItem('inventario_mirest_salidas', JSON.stringify(historialSalidas));
+    // Actualizar stock de cada ingrediente
+    for (const item of listaIngredientes) {
+        const insumoActual = inventarioActual.find(i => i.codigo === item.codigo);
+        if (!insumoActual) continue;
+        const nuevoStock = insumoActual.stockActual - item.cantidad;
+        try {
+            await window.AlmacenDB.updateStockInsumo(item.codigo, nuevoStock);
+            insumoActual.stockActual = nuevoStock;
+        } catch (err) {
+            console.error('[salida] Error al actualizar stock de', item.codigo, err);
+            alert(`Historial guardado pero stock no actualizado para: ${item.nombre}`);
+        }
+    }
 
-    window.dispatchEvent(new Event('storage'));
-    
+    // Recargar salidas desde Supabase
+    try {
+        salidas = await window.AlmacenDB.getSalidas();
+    } catch (err) {
+        console.error('[salida] Error al recargar salidas:', err);
+    }
+
     limpiarFormulario();
-    cargarSalidas();
+    renderizarSalidas();
     alert('Salida registrada con éxito.');
 }
 
 function generarSiguienteID() {
     const prefijo = 'SAL';
-    const registros = JSON.parse(localStorage.getItem('inventario_mirest_salidas')) || [];
-    const ids = registros.map(r => r.id).filter(id => id && id.startsWith(prefijo));
+    const ids = salidas.map(r => r.id).filter(id => id && id.startsWith(prefijo));
     if (ids.length === 0) return `${prefijo}00001`;
     const numeros = ids.map(id => parseInt(id.replace(prefijo, '')) || 0);
     const siguiente = Math.max(...numeros) + 1;
@@ -481,16 +449,19 @@ function renderizarSalidas() {
     let inversionTotal = 0;
 
     salidas.forEach(salida => {
-        if (salida.tipo !== 'no-valido') inversionTotal += (salida.costoTotalMovimiento || 0);
+        const costoTotal = salida.costo_total_movimiento || salida.costoTotalMovimiento || 0;
+        const referenciaId = salida.referencia_id || salida.referenciaId || null;
+        const corregidoPorId = salida.corregido_por_id || salida.corregidoPorId || null;
+
+        if (salida.tipo !== 'no-valido') inversionTotal += costoTotal;
 
         const row = document.createElement('tr');
         if (salida.tipo === 'no-valido') row.classList.add('row-no-valido');
-        
-        const badgeClass = `badge-${salida.tipo}`;
-        const refInfo = salida.referenciaId ? `<br><small>Ref: ${salida.referenciaId}</small>` : '';
-        const corrInfo = salida.corregidoPorId ? `<br><small>Corr: ${salida.corregidoPorId}</small>` : '';
 
-        // Detalle de insumos
+        const badgeClass = `badge-${salida.tipo}`;
+        const refInfo = referenciaId ? `<br><small>Ref: ${referenciaId}</small>` : '';
+        const corrInfo = corregidoPorId ? `<br><small>Corr: ${corregidoPorId}</small>` : '';
+
         let ingredientesHTML = '';
         let cantidadesHTML = '';
         let costosUnitHTML = '';
@@ -512,7 +483,6 @@ function renderizarSalidas() {
             proveedoresHTML += `<div>${ing.proveedor || "-"}</div>`;
         });
 
-        // Multimedia y Notas (Requerimiento 2.2 unificado: Descarga obligatoria)
         let adjuntosHTML = '';
         if (salida.archivos && salida.archivos.length > 0) {
             adjuntosHTML += '<div class="adjuntos-container" style="display:flex; flex-wrap:wrap; gap:8px;">';
@@ -521,7 +491,6 @@ function renderizarSalidas() {
             });
             adjuntosHTML += '</div>';
         }
-        
         if (salida.notas) adjuntosHTML += `<div style="font-size: 0.7rem; color: var(--muted-foreground); font-style: italic; margin-top:4px;">" ${salida.notas} "</div>`;
         if (salida.justificacion) adjuntosHTML += `<div style="font-size: 0.7rem; color: var(--primary); font-weight: 500; margin-top:4px;">Just: ${salida.justificacion}</div>`;
 
@@ -561,23 +530,19 @@ window.prepararModificacion = function(id) {
     const items = salida.ingredientes || [];
     const principal = items[0];
 
-    // Datos del Registro
     inputHora.value = salida.hora;
     selectMotivo.value = salida.motivo;
     inputJustificacion.value = salida.justificacion;
-    selectProveedor.value = salida.proveedorNombre;
     inputComprobante.value = salida.comprobante !== '-' ? salida.comprobante : '';
     inputUsuario.value = salida.usuario;
     inputTextoLibre.value = salida.notas || '';
 
-    // Insumo Principal
     selectIngrediente.value = principal.codigo;
     inputCantidad.value = principal.cantidad;
     inputCodigo.value = principal.codigo;
     inputCategoria.value = principal.categoria;
     inputCostoUnitario.value = principal.costoUnitario.toFixed(2);
 
-    // Insumos Extras
     contenedorIngredientesExtra.innerHTML = '';
     for (let i = 1; i < items.length; i++) {
         agregarFilaIngredienteExtra();
@@ -612,15 +577,8 @@ async function toggleGrabacion() {
             mediaRecorder.onstop = async () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                 const audioFile = new File([audioBlob], `grabacion_${Date.now()}.wav`, { type: 'audio/wav' });
-                
-                // Convertir a Base64 para persistencia real (Requerimiento 3.1)
                 const base64 = await toBase64(audioFile);
-                archivosAdjuntos.push({
-                    name: audioFile.name,
-                    type: audioFile.type,
-                    data: base64
-                });
-
+                archivosAdjuntos.push({ name: audioFile.name, type: audioFile.type, data: base64 });
                 actualizarListaArchivos();
                 clearInterval(grabacionInterval);
                 statusGrabacion.style.display = 'none';

@@ -19,21 +19,33 @@ function init() {
     configurarEventos();
 }
 
-function cargarDatos() {
-    // Requerimiento 5.2: Usar SOLO datos de inventario
-    const datosInventario = JSON.parse(localStorage.getItem('inventario_mirest')) || [];
-    inventario = datosInventario.map(item => {
-        const estado = getEstado(item);
-        return {
-            ...item,
-            estadoRepo: estado,
-            sugerido: Math.max(0, (item.stockMinimo * 2) - item.stockActual), // Lógica simple de sugerencia
-            costoEstimado: Math.max(0, (item.stockMinimo * 2) - item.stockActual) * (item.costoUnitario || 0)
-        };
-    }).filter(item => item.estadoRepo !== 'ok'); // Solo los que necesitan comprar
+async function cargarDatos() {
+    try {
+        const datosInventario = await window.AlmacenDB.getInsumos();
 
-    actualizarContadores();
-    filtrarYRenderizar();
+        // Filtrar solo los que necesitan compra: stockActual <= stockMinimo
+        inventario = datosInventario
+            .filter(item => item.stockActual <= item.stockMinimo)
+            .map(item => {
+                const sugerido = calcularCantidadSugerida(item.stockActual, item.stockMinimo);
+                return {
+                    ...item,
+                    estadoRepo: item.estado || getEstado(item),
+                    sugerido,
+                    costoEstimado: sugerido * (item.costoUnitario || 0)
+                };
+            });
+
+        actualizarContadores();
+        filtrarYRenderizar();
+    } catch (err) {
+        console.error('[que-comprar] Error al cargar datos:', err);
+        listaQueComprar.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:2rem; color:#ef4444;">❌ Error al cargar datos. Verifique la conexión.</td></tr>';
+    }
+}
+
+function calcularCantidadSugerida(stockActual, stockMinimo) {
+    return Math.max(0, (stockMinimo * 2) - stockActual);
 }
 
 function getEstado(item) {
@@ -53,12 +65,8 @@ function actualizarContadores() {
 
 function filtrarYRenderizar() {
     productosFiltrados = inventario.filter(item => {
-        // Filtro por estado
         if (filtroActual !== 'todos' && item.estadoRepo !== filtroActual) return false;
-        
-        // Filtro por búsqueda
         if (busquedaActual && !item.nombre.toLowerCase().includes(busquedaActual.toLowerCase())) return false;
-        
         return true;
     });
 
@@ -74,7 +82,7 @@ function filtrarYRenderizar() {
 
 function renderizarTabla() {
     listaQueComprar.innerHTML = '';
-    
+
     if (productosFiltrados.length === 0) {
         mensajeVacio.style.display = 'block';
         document.getElementById('tablaQueComprar').style.display = 'none';
@@ -119,17 +127,9 @@ function configurarEventos() {
             filtrarYRenderizar();
         });
     });
-
-    // Escuchar cambios en inventario desde otras pestañas
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'inventario_mirest') {
-            cargarDatos();
-        }
-    });
 }
 
 function contactarProveedor(proveedor) {
-    // Redirigir al módulo de clientes (Bruce) pasando el nombre del proveedor
     window.location.href = '../../Clientes-Bruce/clientes.html?nombre=' + encodeURIComponent(proveedor);
 }
 

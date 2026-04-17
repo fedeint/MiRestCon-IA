@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   try {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-gemini-key");
 
     if (req.method === "OPTIONS") {
       return res.status(200).json({ ok: true });
@@ -12,9 +12,9 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: "Method Not Allowed" });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = req.headers["x-gemini-key"] || process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: "Missing GEMINI_API_KEY" });
+      return res.status(401).json({ error: "Missing Gemini API key. Provide it via x-gemini-key header or GEMINI_API_KEY env var." });
     }
 
     const payload = req.body || {};

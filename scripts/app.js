@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeResponsiveSidebar(pageType);
   initializePageTransitions();
   setText("currentYear", String(new Date().getFullYear()));
+  initializeIAWidget(rootPath);
 
   if (pageType === "dashboard") {
     initializeDashboardPage();
@@ -178,4 +179,212 @@ function shouldHandleTransition(event, link) {
   if (url.href === window.location.href) return false;
 
   return true;
+}
+
+function initializeIAWidget(rootPath) {
+  const topbarActions = document.querySelector(".topbar__actions");
+  if (!topbarActions) return;
+
+  const iaRoot = rootPath ? `${rootPath}/IA` : "./IA";
+  const imgSrc = `${iaRoot}/DalIA.png`;
+  const vidSrc = `${iaRoot}/dallA.webm`;
+
+  // ── Botón topbar: avatar con video de DalIA ────────────────────────────────
+  const btn = document.createElement("button");
+  btn.className = "icon-button ia-widget-btn";
+  btn.type = "button";
+  btn.setAttribute("aria-label", "Abrir asistente IA");
+  btn.setAttribute("title", "DallIA · Asistente IA");
+  btn.innerHTML = `
+    <video src="${vidSrc}" autoplay muted loop playsinline
+      onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    </video>
+    <img src="${imgSrc}" alt="DallIA" style="display:none;" />
+    <span class="ia-widget-btn__dot"></span>
+  `;
+  topbarActions.prepend(btn);
+
+  // ── Panel flotante ─────────────────────────────────────────────────────────
+  const panel = document.createElement("div");
+  panel.className = "ia-widget-panel";
+  panel.setAttribute("role", "dialog");
+  panel.setAttribute("aria-label", "Chat con DallIA");
+  panel.innerHTML = `
+    <div class="ia-widget-header">
+      <div class="ia-widget-mascot">
+        <video src="${vidSrc}" autoplay muted loop playsinline
+          onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        </video>
+        <img src="${imgSrc}" alt="DallIA" style="display:none;" />
+        <span class="ia-widget-mascot__dot" title="En línea"></span>
+      </div>
+      <div class="ia-widget-hactions" style="position:absolute;top:10px;right:10px;">
+        <button class="ia-widget-hbtn" id="ia-widget-newchat" type="button" title="Nueva conversación">
+          <i data-lucide="plus"></i>
+        </button>
+        <button class="ia-widget-hbtn" id="ia-widget-close" type="button" aria-label="Cerrar">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="ia-widget-header__info">
+        <div>
+          <div class="ia-widget-header__name">
+            DallIA
+            <span class="ia-widget-header__badge">IA</span>
+          </div>
+          <div class="ia-widget-header__sub">
+            <span class="ia-widget-header__sub-dot"></span>
+            En línea · Asistente de MiRest
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ia-widget-messages" id="ia-widget-msgs" role="log" aria-live="polite"></div>
+
+    <div class="ia-widget-typing" id="ia-widget-typing" aria-hidden="true">
+      <div class="ia-widget-typing__avatar">
+        <img src="${imgSrc}" alt="DallIA" />
+      </div>
+      <div class="ia-widget-typing__dots">
+        <span class="ia-widget-typing__dot"></span>
+        <span class="ia-widget-typing__dot"></span>
+        <span class="ia-widget-typing__dot"></span>
+      </div>
+    </div>
+
+    <div class="ia-widget-footer">
+      <div class="ia-widget-footer-row">
+        <textarea class="ia-widget-input" id="ia-widget-input" rows="1"
+          placeholder="Pregúntale algo a DallIA…" maxlength="800"
+          aria-label="Mensaje para DallIA"></textarea>
+        <button class="ia-widget-send" id="ia-widget-send" type="button" aria-label="Enviar mensaje">
+          <i data-lucide="send"></i>
+        </button>
+      </div>
+      <div class="ia-widget-hint">
+        <kbd>Enter</kbd> enviar &nbsp;·&nbsp; <kbd>Shift+Enter</kbd> nueva línea
+      </div>
+    </div>
+  `;
+  document.body.appendChild(panel);
+
+  if (window.lucide) window.lucide.createIcons();
+
+  // ── Estado ─────────────────────────────────────────────────────────────────
+  let isOpen = false;
+  let isLoading = false;
+  let history = [];
+
+  const msgsEl    = panel.querySelector("#ia-widget-msgs");
+  const inputEl   = panel.querySelector("#ia-widget-input");
+  const sendEl    = panel.querySelector("#ia-widget-send");
+  const typingEl  = panel.querySelector("#ia-widget-typing");
+  const closeEl   = panel.querySelector("#ia-widget-close");
+  const newChatEl = panel.querySelector("#ia-widget-newchat");
+
+  function togglePanel(open) {
+    isOpen = open;
+    panel.classList.toggle("ia-widget-panel--open", open);
+    btn.classList.toggle("ia-widget-btn--active", open);
+    btn.setAttribute("aria-label", open ? "Cerrar asistente IA" : "Abrir asistente IA");
+    if (open) {
+      if (msgsEl.childElementCount === 0) {
+        appendMsg("assistant", "¡Hola! Soy DallIA, tu asistente de MiRest. ¿En qué puedo ayudarte hoy?");
+      }
+      inputEl.focus();
+    }
+  }
+
+  function appendMsg(role, text) {
+    const msg = document.createElement("div");
+    msg.className = `ia-widget-msg ia-widget-msg--${role}`;
+
+    const avatarHtml = role === "assistant"
+      ? `<div class="ia-widget-msg__avatar"><img src="${imgSrc}" alt="DallIA" /></div>`
+      : `<div class="ia-widget-msg__avatar">Tú</div>`;
+
+    const bubbleContent = role === "assistant"
+      ? text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>")
+      : escapeHtml(text);
+
+    msg.innerHTML = `
+      ${avatarHtml}
+      <div class="ia-widget-msg__body">
+        <div class="ia-widget-msg__sender">${role === "assistant" ? "DallIA" : "Tú"}</div>
+        <div class="ia-widget-msg__bubble">${bubbleContent}</div>
+      </div>
+    `;
+    msgsEl.appendChild(msg);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+
+  function escapeHtml(t) {
+    return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  async function sendMsg() {
+    const text = inputEl.value.trim();
+    if (!text || isLoading) return;
+    inputEl.value = "";
+    inputEl.style.height = "auto";
+    history.push({ role: "user", content: text });
+    appendMsg("user", text);
+
+    isLoading = true;
+    sendEl.disabled = true;
+    typingEl.style.display = "flex";
+    typingEl.setAttribute("aria-hidden", "false");
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+
+    const base = rootPath || "";
+    try {
+      const resp = await fetch(`${base}/api/ai`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          model: "gemini-1.5-flash",
+          system: "Eres DallIA, asistente inteligente del restaurante MiRest. Responde siempre en español, de forma concisa, amable y útil.",
+          messages: history,
+        }),
+      });
+      const json = await resp.json();
+      const reply = json?.data?.candidates?.[0]?.content?.parts?.[0]?.text
+        || "No pude procesar tu solicitud en este momento. Intenta de nuevo.";
+      history.push({ role: "assistant", content: reply });
+      appendMsg("assistant", reply);
+    } catch (_) {
+      appendMsg("assistant", "❌ Error de conexión. Verifica tu internet e intenta de nuevo.");
+    } finally {
+      isLoading = false;
+      sendEl.disabled = false;
+      typingEl.style.display = "none";
+      typingEl.setAttribute("aria-hidden", "true");
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+      inputEl.focus();
+    }
+  }
+
+  // ── Eventos ────────────────────────────────────────────────────────────────
+  btn.addEventListener("click", () => togglePanel(!isOpen));
+  closeEl.addEventListener("click", () => togglePanel(false));
+  newChatEl.addEventListener("click", () => {
+    history = [];
+    msgsEl.innerHTML = "";
+    appendMsg("assistant", "¡Nueva conversación iniciada! ¿En qué puedo ayudarte?");
+    inputEl.focus();
+  });
+
+  sendEl.addEventListener("click", sendMsg);
+  inputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+  });
+  inputEl.addEventListener("input", () => {
+    inputEl.style.height = "auto";
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 96) + "px";
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && isOpen) togglePanel(false);
+  });
 }
