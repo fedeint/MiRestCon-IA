@@ -13,25 +13,38 @@ import { registerServiceWorker, requestWakeLock, enableWakeLockAutoReacquire, vi
 import { supabase, getCurrentUser } from "./supabase.js"; // Importación relativa correcta
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // Función para mostrar el contenido y evitar la pantalla blanca
+  const revealPage = () => document.body.classList.add("page-ready");
+
   const pageType = document.body.dataset.pageType || "dashboard";
   const activeKey = document.body.dataset.moduleKey || "dashboard";
   const activeItem = getModuleByKey(activeKey);
   const rootPath = (document.body.dataset.rootPath || "").replace(/\/+$/, "");
 
   // Guardia de Autenticación
-  const isLoginPage = window.location.pathname.endsWith("login.html");
-  const user = await getCurrentUser();
+  const isLoginPage = window.location.pathname.includes("login.html") ||
+    window.location.pathname.endsWith("/login") ||
+    window.location.pathname === "/";
+
+  let user = null;
+  try {
+    user = await getCurrentUser();
+  } catch (err) {
+    console.error("[App] Error al obtener usuario:", err);
+  }
 
   if (!user && !isLoginPage) {
+    console.log("[App] Usuario no autenticado, redirigiendo a login...");
     window.location.href = rootPath ? `${rootPath}/login.html` : "login.html";
     return;
   }
 
-  // Guardar rol del usuario en la sesión actual
-  const userRole = user.user_metadata?.role || 'admin'; // Por defecto admin en este mock hasta que se configure la bd
-  window.currentUserRole = userRole;
+  // Si llegamos aquí, o hay usuario o es la página de login
+  if (user) {
+    window.currentUserRole = user.user_metadata?.role || 'admin';
+  }
 
-  document.body.classList.add("page-ready");
+  revealPage();
 
   // Inicialización PWA Core
   registerServiceWorker(rootPath).catch(() => null);
@@ -392,6 +405,9 @@ function initializeIAWidget(rootPath) {
         }),
       });
       const json = await resp.json();
+
+      if (resp.status === 401) throw new Error("API Key requerida");
+
       const reply = json?.data?.candidates?.[0]?.content?.parts?.[0]?.text
         || "No pude procesar tu solicitud en este momento. Intenta de nuevo.";
       history.push({ role: "assistant", content: reply });

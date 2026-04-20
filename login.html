@@ -70,6 +70,9 @@
     import { initializeThemeToggle } from './scripts/navigation.js';
 
     document.addEventListener("DOMContentLoaded", async () => {
+      // Asegura que el body sea visible si el CSS lo oculta por defecto
+      document.body.classList.add("page-ready");
+
       window.lucide.createIcons();
       initializeThemeToggle(document.getElementById("themeToggle"));
 

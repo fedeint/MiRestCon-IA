@@ -8,7 +8,12 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Missing or empty text field' });
     }
 
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    // Se requiere obligatoriamente la clave del usuario enviada desde el frontend
+    const GEMINI_API_KEY = req.headers['x-gemini-key'];
+
+    if (!GEMINI_API_KEY) {
+        return res.status(401).json({ error: 'API Key de usuario requerida.' });
+    }
 
     try {
         const response = await fetch(
