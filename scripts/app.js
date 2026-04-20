@@ -10,7 +10,7 @@ import {
 import { initializeDashboard } from "./dashboard.js";
 import { registerServiceWorker, requestWakeLock, enableWakeLockAutoReacquire, vibrate } from "../Pwa/pwa.js";
 
-import { supabase, getCurrentUser } from "./supabase.js";
+import { supabase, getCurrentUser } from "./supabase.js"; // Importación relativa correcta
 
 document.addEventListener("DOMContentLoaded", async () => {
   const pageType = document.body.dataset.pageType || "dashboard";
