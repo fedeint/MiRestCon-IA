@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase.js';
+import { supabase } from '../scripts/supabase.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 // Cliente secundario para registrar sin perder la sesión de admin
