@@ -1,4 +1,4 @@
-import { MODULES, toHref } from "./navigation.js";
+import { MODULES, toHref, getModulesByRole } from "./navigation.js";
 
 export function initializeDashboard() {
   renderMetrics();
@@ -11,10 +11,13 @@ function renderMetrics() {
   const target = document.getElementById("dashboardMetrics");
   if (!target) return;
 
+  const role = window.currentUserRole || 'admin';
+  const allowed = getModulesByRole(role).filter(m => m.key !== 'dashboard');
+
   const metrics = [
     {
-      value: String(MODULES.length),
-      label: "Módulos listos",
+      value: String(allowed.length),
+      label: "Módulos Asignados",
     },
     {
       value: "1",
@@ -46,7 +49,10 @@ function renderModuleGrid() {
   const target = document.getElementById("moduleGrid");
   if (!target) return;
 
-  target.innerHTML = MODULES.map(
+  const role = window.currentUserRole || 'admin';
+  const allowed = getModulesByRole(role).filter(m => m.key !== 'dashboard');
+
+  target.innerHTML = allowed.map(
     (module) => {
       const iconName = module.icon || "circle";
       return `

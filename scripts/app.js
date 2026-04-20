@@ -10,11 +10,24 @@ import {
 import { initializeDashboard } from "./dashboard.js";
 import { registerServiceWorker, requestWakeLock, enableWakeLockAutoReacquire, vibrate } from "../Pwa/pwa.js";
 
-document.addEventListener("DOMContentLoaded", () => {
+import { supabase, getCurrentUser } from "../api/supabase.js";
+
+document.addEventListener("DOMContentLoaded", async () => {
   const pageType = document.body.dataset.pageType || "dashboard";
   const activeKey = document.body.dataset.moduleKey || "dashboard";
   const activeItem = getModuleByKey(activeKey);
   const rootPath = (document.body.dataset.rootPath || "").replace(/\/+$/, "");
+  
+  // Guardia de Autenticación
+  const user = await getCurrentUser();
+  if (!user) {
+    window.location.href = rootPath ? `${rootPath}/login.html` : "login.html";
+    return;
+  }
+  
+  // Guardar rol del usuario en la sesión actual
+  const userRole = user.user_metadata?.role || 'admin'; // Por defecto admin en este mock hasta que se configure la bd
+  window.currentUserRole = userRole;
 
   document.body.classList.add("page-ready");
   
@@ -24,15 +37,16 @@ document.addEventListener("DOMContentLoaded", () => {
   enableWakeLockAutoReacquire();
   initializeHapticFeedback();
 
-  renderSidebar(document.getElementById("sidebarNav"), activeKey);
+  renderSidebar(document.getElementById("sidebarNav"), activeKey, userRole);
   initializeThemeToggle(document.getElementById("themeToggle"));
   initializeResponsiveSidebar(pageType);
   initializePageTransitions();
   setText("currentYear", String(new Date().getFullYear()));
   initializeIAWidget(rootPath);
+  setupLogoutBtn(rootPath);
 
   if (pageType === "dashboard") {
-    initializeDashboardPage();
+    initializeDashboardPage(user.email);
     initializeDashboard();
     return;
   }
@@ -40,13 +54,26 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeModulePage(activeItem);
 });
 
-function initializeDashboardPage() {
+function setupLogoutBtn(rootPath) {
+  const avatar = document.querySelector('.avatar');
+  if (avatar) {
+    avatar.style.cursor = 'pointer';
+    avatar.title = 'Cerrar sesión';
+    avatar.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = rootPath ? `${rootPath}/login.html` : "login.html";
+    });
+  }
+}
+
+function initializeDashboardPage(userEmail) {
   const locationLabel = window.location.hostname || "entorno local";
+  const userGreeting = userEmail ? userEmail.split('@')[0] : "Administrador";
 
   setText("pageEyebrow", "Panel base");
-  setText("pageTitle", `${getGreeting()}, Administrador`);
+  setText("pageTitle", `${getGreeting()}, ${userGreeting}`);
   setText("pageSubtitle", `${capitalize(formatCurrentDate())} · ${locationLabel} · ${APP_META.envLabel}`);
-  setText("pageContextChip", "Estructura MVP");
+  setText("pageContextChip", "Sesión Activa");
 }
 
 function initializeModulePage(module) {

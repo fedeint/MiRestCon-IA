@@ -106,21 +106,6 @@ export const MODULES = [
     ],
   },
   {
-    key: "menu-actual",
-    label: "MenuActual",
-    short: "MN",
-    icon: "list",
-    path: "MenuActual/menu-actual.html",
-    description: "Carta vigente, categorías y disponibilidad comercial del menú.",
-    owner:
-      "Este entry point queda reservado para el frontend definitivo del equipo de MenuActual.",
-    handoff: [
-      "Diseñar la estructura del catálogo sin mezclar lógica de pedidos.",
-      "Respetar el uso de grid y espaciado del Design System.",
-      "Mantener el módulo desacoplado para revisión por pull request.",
-    ],
-  },
-  {
     key: "pedidos",
     label: "Pedidos",
     short: "PD",
@@ -193,6 +178,19 @@ export const MODULES = [
       "Gestión de Restaurante y horarios."
     ],
   },
+  {
+    key: "accesos",
+    label: "Accesos",
+    short: "AC",
+    icon: "shieldCheck",
+    path: "Accesos/accesos.html",
+    description: "Gestión de roles y habilitación de usuarios en Supabase.",
+    owner: "Módulo exclusivo de administrador.",
+    handoff: [
+      "Crear y suspender credenciales.",
+      "Asignar roles a las nuevas cuentas.",
+    ],
+  },
 ];
 
 export const NAV_ITEMS = [
@@ -238,17 +236,36 @@ export function getGreeting() {
   return "Buenas noches";
 }
 
-export function renderSidebar(target, activeKey) {
+export const ROLE_PERMISSIONS = {
+  superadmin: ["*"], // Todos
+  admin: ["*"],      // Todos + Accesos
+  caja: ["caja"],
+  chef: ["cocina", "recetas"],
+  pedidos: ["pedidos", "delivery-afiliados"],
+  almacen: ["almacen"],
+  marketing: ["clientes", "reportes", "ia"]
+};
+
+export function getModulesByRole(role) {
+  const perms = ROLE_PERMISSIONS[role] || [];
+  if (perms.includes("*")) {
+    return NAV_ITEMS;
+  }
+  return NAV_ITEMS.filter(item => item.key === 'dashboard' || perms.includes(item.key));
+}
+
+export function renderSidebar(target, activeKey, userRole = "admin") {
   if (!target) return;
 
-  const dashboardItem = NAV_ITEMS[0];
-  const moduleItems = NAV_ITEMS.slice(1);
+  const allowedItems = getModulesByRole(userRole);
+  const dashboardItem = allowedItems.find(i => i.key === "dashboard");
+  const moduleItems = allowedItems.filter(i => i.key !== "dashboard");
 
   target.innerHTML = `
     <section class="sidebar-group">
       <span class="sidebar-group__label">Menu principal</span>
       <div class="sidebar-list">
-        ${renderNavItem(dashboardItem, activeKey)}
+        ${dashboardItem ? renderNavItem(dashboardItem, activeKey) : ''}
       </div>
     </section>
     <section class="sidebar-group">
@@ -259,7 +276,6 @@ export function renderSidebar(target, activeKey) {
     </section>
   `;
 
-  // Inicializar iconos de Lucide para el sidebar
   if (window.lucide) {
     window.lucide.createIcons();
   }
