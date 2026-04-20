@@ -17,20 +17,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   const activeKey = document.body.dataset.moduleKey || "dashboard";
   const activeItem = getModuleByKey(activeKey);
   const rootPath = (document.body.dataset.rootPath || "").replace(/\/+$/, "");
-  
+
   // Guardia de Autenticación
+  const isLoginPage = window.location.pathname.endsWith("login.html");
   const user = await getCurrentUser();
-  if (!user) {
+
+  if (!user && !isLoginPage) {
     window.location.href = rootPath ? `${rootPath}/login.html` : "login.html";
     return;
   }
-  
+
   // Guardar rol del usuario en la sesión actual
   const userRole = user.user_metadata?.role || 'admin'; // Por defecto admin en este mock hasta que se configure la bd
   window.currentUserRole = userRole;
 
   document.body.classList.add("page-ready");
-  
+
   // Inicialización PWA Core
   registerServiceWorker(rootPath).catch(() => null);
   requestWakeLock();
@@ -309,11 +311,11 @@ function initializeIAWidget(rootPath) {
   let isLoading = false;
   let history = [];
 
-  const msgsEl    = panel.querySelector("#ia-widget-msgs");
-  const inputEl   = panel.querySelector("#ia-widget-input");
-  const sendEl    = panel.querySelector("#ia-widget-send");
-  const typingEl  = panel.querySelector("#ia-widget-typing");
-  const closeEl   = panel.querySelector("#ia-widget-close");
+  const msgsEl = panel.querySelector("#ia-widget-msgs");
+  const inputEl = panel.querySelector("#ia-widget-input");
+  const sendEl = panel.querySelector("#ia-widget-send");
+  const typingEl = panel.querySelector("#ia-widget-typing");
+  const closeEl = panel.querySelector("#ia-widget-close");
   const newChatEl = panel.querySelector("#ia-widget-newchat");
 
   function togglePanel(open) {
@@ -359,6 +361,13 @@ function initializeIAWidget(rootPath) {
   async function sendMsg() {
     const text = inputEl.value.trim();
     if (!text || isLoading) return;
+
+    const userApiKey = localStorage.getItem("mirest_gemini_key") || "";
+    if (!userApiKey) {
+      appendMsg("assistant", "⚠️ Debes configurar tu API Key de Gemini en el módulo de IA para usar a DallIA.");
+      return;
+    }
+
     inputEl.value = "";
     inputEl.style.height = "auto";
     history.push({ role: "user", content: text });
@@ -370,14 +379,15 @@ function initializeIAWidget(rootPath) {
     typingEl.setAttribute("aria-hidden", "false");
     msgsEl.scrollTop = msgsEl.scrollHeight;
 
-    const base = rootPath || "";
     try {
-      const resp = await fetch(`${base}/api/ai`, {
+      const resp = await fetch(`/api/ai`, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          "x-gemini-key": userApiKey
+        },
         body: JSON.stringify({
-          model: "gemini-1.5-flash",
-          system: "Eres DallIA, asistente inteligente del restaurante MiRest. Responde siempre en español, de forma concisa, amable y útil.",
+          system: "Eres DallIA, asistente inteligente del restaurante MiRest. Responde siempre en español. Usa el contexto para ayudar con pedidos e inventario.",
           messages: history,
         }),
       });

@@ -5,31 +5,37 @@ let conversationHistory = []; // Array<{role: string, content: string}>
 let ragDisabled = false;
 let supabaseWarning = false;
 
+// Configuración inicial con las nuevas credenciales de Supabase
+window.MIREST_CONFIG = window.MIREST_CONFIG || {
+  supabaseUrl: "https://twneirdsvyxsdsneidhi.supabase.co",
+  supabaseAnonKey: "sb_publishable_A0yo_kDAGY3OamrUOOL9Bw_ShVWdBMF"
+};
+
 // ─── Gestión de proveedor y credenciales ──────────────────────────────────────
-function getProvider()    { return localStorage.getItem("mirest_ai_provider") || ""; }
-function saveProvider(p)  { localStorage.setItem("mirest_ai_provider", p); }
+function getProvider() { return localStorage.getItem("mirest_ai_provider") || ""; }
+function saveProvider(p) { localStorage.setItem("mirest_ai_provider", p); }
 
-function getGroqKey()     { return localStorage.getItem("mirest_groq_key") || ""; }
-function saveGroqKey(k)   { localStorage.setItem("mirest_groq_key", k.trim()); }
+function getGroqKey() { return localStorage.getItem("mirest_groq_key") || ""; }
+function saveGroqKey(k) { localStorage.setItem("mirest_groq_key", k.trim()); }
 
-function getGeminiKey()   { return localStorage.getItem("mirest_gemini_key") || ""; }
+function getGeminiKey() { return localStorage.getItem("mirest_gemini_key") || ""; }
 function saveGeminiKey(k) { localStorage.setItem("mirest_gemini_key", k.trim()); }
 
-function getCfToken()     { return localStorage.getItem("mirest_cf_token") || ""; }
-function saveCfToken(k)   { localStorage.setItem("mirest_cf_token", k.trim()); }
+function getCfToken() { return localStorage.getItem("mirest_cf_token") || ""; }
+function saveCfToken(k) { localStorage.setItem("mirest_cf_token", k.trim()); }
 
-function getCfAccount()   { return localStorage.getItem("mirest_cf_account") || ""; }
+function getCfAccount() { return localStorage.getItem("mirest_cf_account") || ""; }
 function saveCfAccount(k) { localStorage.setItem("mirest_cf_account", k.trim()); }
 
 function clearGroqKey() {
-  ["mirest_ai_provider","mirest_groq_key","mirest_gemini_key","mirest_cf_token","mirest_cf_account"]
+  ["mirest_ai_provider", "mirest_groq_key", "mirest_gemini_key", "mirest_cf_token", "mirest_cf_account"]
     .forEach(k => localStorage.removeItem(k));
 }
 
 function isConfigured() {
   const p = getProvider();
-  if (p === "groq")       return !!getGroqKey();
-  if (p === "gemini")     return !!getGeminiKey();
+  if (p === "groq") return !!getGroqKey();
+  if (p === "gemini") return !!getGeminiKey();
   if (p === "cloudflare") return !!(getCfToken() && getCfAccount());
   return false;
 }
@@ -86,7 +92,7 @@ function buildLLMPayload(chunks, userText, history) {
     contextBlock =
       "CONTEXTO RELEVANTE:\n" +
       sorted
-        .map((chunk, i) => `[${i + 1}] ${chunk.content}`)
+        .map((chunk, i) => `[${i + 1}] (Fuente: ${chunk.metadata?.source || 'Documentación'}): ${chunk.content}`)
         .join("\n\n");
   }
 
@@ -163,7 +169,7 @@ async function retrieveContext(embedding) {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     console.error(
       "[DallIA] SUPABASE_URL o SUPABASE_ANON_KEY no están definidas en window.MIREST_CONFIG. " +
-        "El RAG pipeline está deshabilitado. DallIA operará como chat simple."
+      "El RAG pipeline está deshabilitado. DallIA operará como chat simple."
     );
     ragDisabled = true;
     return [];
@@ -204,19 +210,11 @@ async function retrieveContext(embedding) {
 // Envía el payload al proxy LLM y retorna el texto de la respuesta.
 // Requirements: 4.3, 4.4
 async function callLLM(payload) {
-  const provider = getProvider() || "groq";
-  let endpoint, headers;
-
-  if (provider === "groq") {
-    endpoint = "/api/groq";
-    headers = { "Content-Type": "application/json", "x-groq-key": getGroqKey() };
-  } else if (provider === "cloudflare") {
-    endpoint = "/api/cloudflare-ai";
-    headers = { "Content-Type": "application/json", "x-cf-token": getCfToken(), "x-cf-account": getCfAccount() };
-  } else {
-    endpoint = "/api/ai";
-    headers = { "Content-Type": "application/json", "x-gemini-key": getGeminiKey() };
-  }
+  const endpoint = "/api/ai";
+  const headers = {
+    "Content-Type": "application/json",
+    "x-gemini-key": getGeminiKey()
+  };
 
   let response;
   try {
@@ -236,6 +234,11 @@ async function callLLM(payload) {
 async function sendMessage(userText) {
   supabaseWarning = false;
 
+  if (!isConfigured()) {
+    renderMessage("assistant", "⚠️ Por favor, configura tu API Key antes de continuar.");
+    return;
+  }
+
   setLoadingState(true);
   renderMessage("user", userText);
   appendToHistory("user", userText);
@@ -243,7 +246,11 @@ async function sendMessage(userText) {
   try {
     const embedding = await getEmbedding(userText);
     const chunks = await retrieveContext(embedding);
-    const payload = buildLLMPayload(chunks, userText, conversationHistory);
+
+    // Truncar historial antes de enviar para no exceder límites de tokens
+    const history = truncateHistory(conversationHistory);
+    const payload = buildLLMPayload(chunks, userText, history);
+
     const assistantText = await callLLM(payload);
 
     appendToHistory("assistant", assistantText);
@@ -253,12 +260,8 @@ async function sendMessage(userText) {
       renderMessage(
         "assistant",
         "⚠️ Advertencia: DallIA está respondiendo sin acceso a la base de conocimiento. " +
-          "La respuesta puede ser menos precisa."
+        "La respuesta puede ser menos precisa."
       );
-    }
-
-    if (conversationHistory.length > 40) {
-      conversationHistory = truncateHistory(conversationHistory);
     }
   } catch (err) {
     renderMessage(
@@ -360,7 +363,7 @@ function clearChat() {
 // ─── Inicialización del módulo ────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   const chatInput = document.getElementById("chat-input");
-  const btnSend   = document.getElementById("btn-send");
+  const btnSend = document.getElementById("btn-send");
   const btnNewChat = document.getElementById("btn-new-chat");
 
   // Evento: click en botón enviar
@@ -467,7 +470,7 @@ function showApiKeyModal() {
 
   document.body.appendChild(overlay);
 
-  const saveBtn   = overlay.querySelector("#api-key-save");
+  const saveBtn = overlay.querySelector("#api-key-save");
   const fieldsDiv = overlay.querySelector("#prov-fields");
   let selectedProv = "";
 
@@ -520,10 +523,10 @@ function showApiKeyModal() {
     btn.addEventListener("click", () => {
       overlay.querySelectorAll(".prov-btn").forEach(b => {
         b.style.borderColor = "var(--color-border,#444)";
-        b.style.background  = "var(--color-bg,#111)";
+        b.style.background = "var(--color-bg,#111)";
       });
       btn.style.borderColor = "#f07c2a";
-      btn.style.background  = "rgba(240,124,42,.12)";
+      btn.style.background = "rgba(240,124,42,.12)";
       selectedProv = btn.dataset.prov;
       fieldsDiv.innerHTML = provConfigs[selectedProv].fields;
       saveBtn.style.opacity = "1";
