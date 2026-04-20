@@ -8,7 +8,7 @@ import {
   toHref,
 } from "./navigation.js";
 import { initializeDashboard } from "./dashboard.js";
-import { registerServiceWorker } from "../Pwa/pwa.js";
+import { registerServiceWorker, requestWakeLock, enableWakeLockAutoReacquire, vibrate } from "../Pwa/pwa.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const pageType = document.body.dataset.pageType || "dashboard";
@@ -17,7 +17,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const rootPath = (document.body.dataset.rootPath || "").replace(/\/+$/, "");
 
   document.body.classList.add("page-ready");
+  
+  // Inicialización PWA Core
   registerServiceWorker(rootPath).catch(() => null);
+  requestWakeLock();
+  enableWakeLockAutoReacquire();
+  initializeHapticFeedback();
+
   renderSidebar(document.getElementById("sidebarNav"), activeKey);
   initializeThemeToggle(document.getElementById("themeToggle"));
   initializeResponsiveSidebar(pageType);
@@ -386,5 +392,12 @@ function initializeIAWidget(rootPath) {
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && isOpen) togglePanel(false);
+  });
+}
+
+function initializeHapticFeedback() {
+  document.body.addEventListener("click", (e) => {
+    const target = e.target.closest("button, .btn, .chip, .cfg-toggle, .icon-button, .submenu-card");
+    if (target) vibrate(40);
   });
 }

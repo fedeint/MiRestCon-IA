@@ -18,7 +18,7 @@ Implementar el módulo de Configuración como dos archivos Vanilla JS (`Configur
     - **Property 1: Round-trip de persistencia del Config_Store**
     - **Validates: Requirements 1.4, 1.5**
 
-- [~] 2. Implementar ConfigUI: navegación interna y estructura de secciones
+- [ ] 2. Implementar ConfigUI: navegación interna y estructura de secciones
   - Agregar el markup HTML de las 7 secciones en `configuracion.html` con `data-section="<key>"` y el menú lateral interno con 7 ítems
   - Implementar `ConfigUI.init()`, `ConfigUI.navigate(sectionKey)`, `ConfigUI.hydrate()`, `ConfigUI.showValidation(fieldId, message)`, `ConfigUI.clearValidation(fieldId)`, `ConfigUI.updateTopbarName(name)`
   - Conectar los event listeners del menú lateral interno para cambiar sección activa sin recargar la página
@@ -28,11 +28,11 @@ Implementar el módulo de Configuración como dos archivos Vanilla JS (`Configur
     - **Property 2: Navegación interna muestra sección correcta**
     - **Validates: Requirements 1.8**
 
-- [~] 3. Actualizar `scripts/navigation.js` con el módulo configuracion
+- [ ] 3. Actualizar `scripts/navigation.js` con el módulo configuracion
   - Agregar el entry `{ key: "configuracion", label: "Configuración", short: "CF", icon: "settings", path: "Configuracion/configuracion.html", description: "..." }` al array `MODULES`
   - _Requirements: 1.1_
 
-- [~] 4. Implementar sección Personalizar DallIA
+- [ ] 4. Implementar sección Personalizar DallIA
   - Agregar en `configuracion.html` el markup de la sección `dallia`: input nombre, select trato, select personalidad, 4 toggles de capacidades, área de vista previa
   - Implementar el handler de guardado con validación de nombre no vacío, actualización de `ConfigStore.state.dallIA` y llamada a `ConfigUI.updateTopbarName()`
   - Implementar la vista previa reactiva que muestra nombre, trato y personalidad antes de guardar
@@ -46,7 +46,7 @@ Implementar el módulo de Configuración como dos archivos Vanilla JS (`Configur
     - **Property 4: Actualización reactiva del nombre en topbar**
     - **Validates: Requirements 2.6**
 
-- [~] 5. Implementar sección Alertas y Notificaciones
+- [ ] 5. Implementar sección Alertas y Notificaciones
   - Agregar en `configuracion.html` el markup de la sección `alertas`: 6 toggles de canales, toggle DND, inputs hora Desde/Hasta
   - Implementar la lógica del toggle Urgente: deshabilitar cuando todos los demás canales están desactivados
   - Implementar la visibilidad condicional de los campos de hora según el estado del toggle DND
@@ -65,10 +65,10 @@ Implementar el módulo de Configuración como dos archivos Vanilla JS (`Configur
     - **Property 7: Round-trip de configuración de alertas**
     - **Validates: Requirements 3.6**
 
-- [~] 6. Checkpoint — Asegurar que las secciones DallIA y Alertas persisten y cargan correctamente
+- [ ] 6. Checkpoint — Asegurar que las secciones DallIA y Alertas persisten y cargan correctamente
   - Verificar que todos los tests pasan, consultar al usuario si hay dudas.
 
-- [~] 7. Implementar sección Módulos del Sistema
+- [ ] 7. Implementar sección Módulos del Sistema
   - Agregar en `configuracion.html` el markup de la sección `modulos`: 4 grupos de cards con toggles, módulo Configuración sin toggle
   - Implementar los event listeners de cada toggle para actualizar `ConfigStore.state.modulos[key]` inmediatamente
   - Implementar la advertencia de dependencia al intentar desactivar `pedidosMesas` con `cocinaKDS` activo usando `<dialog>`
@@ -79,7 +79,7 @@ Implementar el módulo de Configuración como dos archivos Vanilla JS (`Configur
     - **Property 8: Toggle de módulo actualiza el Config_Store**
     - **Validates: Requirements 4.7, 4.10**
 
-- [~] 8. Implementar sección Horarios de Operación
+- [ ] 8. Implementar sección Horarios de Operación
   - Agregar en `configuracion.html` el markup de la sección `horarios`: 7 filas con toggle Cerrado, input apertura, input cierre
   - Implementar la lógica del toggle Cerrado: deshabilitar/ocultar campos de hora del día correspondiente
   - Implementar el handler de guardado con validación de cierre > apertura por cada día no cerrado
@@ -94,7 +94,7 @@ Implementar el módulo de Configuración como dos archivos Vanilla JS (`Configur
     - **Property 10: Round-trip de horarios de operación**
     - **Validates: Requirements 5.5**
 
-- [~] 9. Implementar sección Tour del Sistema
+- [ ] 9. Implementar sección Tour del Sistema
   - Agregar en `configuracion.html` el markup de la sección `tour`: lista de 7 pasos con estado, barra de progreso, botón Reiniciar Tour
   - Implementar la función `calcularProgreso(completados, total)` que retorna `Math.round((completados / total) * 100)`
   - Implementar el handler de clic en paso: navegar al módulo o mostrar descripción con botón "Ir al módulo"
@@ -115,10 +115,10 @@ Implementar el módulo de Configuración como dos archivos Vanilla JS (`Configur
     - **Property 13: Reiniciar tour restablece todos los pasos a Pendiente**
     - **Validates: Requirements 6.7**
 
-- [~] 10. Checkpoint — Asegurar que las secciones Módulos, Horarios y Tour funcionan correctamente
+- [ ] 10. Checkpoint — Asegurar que las secciones Módulos, Horarios y Tour funcionan correctamente
   - Verificar que todos los tests pasan, consultar al usuario si hay dudas.
 
-- [~] 11. Implementar sección Roles y Usuarios
+- [ ] 11. Implementar sección Roles y Usuarios
   - Agregar en `configuracion.html` el markup de la sección `usuarios`: tabla de usuarios, formulario CRUD, tabla de permisos por rol
   - Implementar el handler de creación de usuario: validar email único, PIN de 4 dígitos, generar `id` con `crypto.randomUUID()` o `Date.now().toString(36)`, agregar al array `ConfigStore.state.usuarios`
   - Implementar el handler de edición de usuario: actualizar solo el registro con el `id` correspondiente
@@ -143,7 +143,7 @@ Implementar el módulo de Configuración como dos archivos Vanilla JS (`Configur
     - **Property 17: Email duplicado es rechazado**
     - **Validates: Requirements 7.7**
 
-- [~] 12. Implementar sección Información del Restaurante
+- [ ] 12. Implementar sección Información del Restaurante
   - Agregar en `configuracion.html` el markup de la sección `restaurante`: formulario con campos nombre, dirección, RUC, moneda, zona horaria, file input logo, área de vista previa
   - Implementar el handler de selección de imagen: validar tipo (`image/png`, `image/jpeg`) y tamaño (≤ 2 MB), mostrar vista previa con `FileReader`
   - Implementar el handler de guardado: validar RUC de 11 dígitos numéricos, convertir logo a base64, actualizar `ConfigStore.state.restaurante`
@@ -158,7 +158,7 @@ Implementar el módulo de Configuración como dos archivos Vanilla JS (`Configur
     - **Property 19: Nombre del restaurante se refleja en el topbar al cargar**
     - **Validates: Requirements 8.10**
 
-- [~] 13. Checkpoint final — Verificar integración completa del módulo
+- [ ] 13. Checkpoint final — Verificar integración completa del módulo
   - Verificar que todos los tests pasan, consultar al usuario si hay dudas.
 
 ## Notes

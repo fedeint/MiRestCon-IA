@@ -179,6 +179,20 @@ export const MODULES = [
       "Mantener la estética naranja/noche con efectos de audio visuales.",
     ],
   },
+  {
+    key: "configuracion",
+    label: "Configuración",
+    short: "CF",
+    icon: "settings",
+    path: "Configuracion/configuracion.html",
+    description: "Centro de control del sistema, IA, alertas y permisos.",
+    owner: "Administración global.",
+    handoff: [
+      "Permite activar/desactivar módulos",
+      "Configuración de alertas e IA",
+      "Gestión de Restaurante y horarios."
+    ],
+  },
 ];
 
 export const NAV_ITEMS = [
